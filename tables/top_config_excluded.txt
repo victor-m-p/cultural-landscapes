@@ -1,0 +1,197 @@
+\begin{tabular}{rl}
+\toprule
+ DRH ID &                                   Entry name (DRH) \\
+\midrule
+     23 &                                Late Shang Religion \\
+    173 &                             Johannine Christianity \\
+    174 &                     Matthew-James-Didache Movement \\
+    190 &                 Sri Lankan Buddhism (1948-Present) \\
+    204 &                                   Han Confucianism \\
+    217 &                             Roman private religion \\
+    222 &                          Late Classic Lowland Maya \\
+    231 &                             Roman private religion \\
+    263 &                                  Irish Catholicism \\
+    284 &                                    Yolngu religion \\
+    294 &                                         Xuanxue 玄學 \\
+    308 &                              Neo-Assyrian Scholars \\
+    310 &                                Aztec Imperial Core \\
+    364 &                         Chittagong Plain Buddhists \\
+    378 & Bahinabai Chaudhari's Songs: A Performance Trad... \\
+    381 &                  Sikhism: Guru Nanak to Guru Arjan \\
+    383 &                                           Varkaris \\
+    392 &       Sikhism: Guru Hargobind to Guru Gobind Singh \\
+    395 & International Society for Krishna Consciousness... \\
+    400 &                          Singaporean Mega-Churches \\
+    422 &                                       Demeter Cult \\
+    439 &                                        Śaiva Magic \\
+    455 &                                    Lan Na Buddhism \\
+    469 &                                       Won-Buddhism \\
+    472 &                      Karma Kagyu or Kamtsang Kagyu \\
+    477 &                                Tractarian Movement \\
+    478 &                              Early Indian Buddhism \\
+    484 &                         Northern Irish Protestants \\
+    485 &                        Sámi pre-Christian religion \\
+    486 & Church of Jesus Christ of Latter-day Saints (ea... \\
+    490 &                                       Guglielmites \\
+    491 &                                    Anglican Church \\
+    520 &                                         Cham Ahiér \\
+    525 & Church of Jesus Christ of Latter-day Saints (mo... \\
+    535 &                                          Pāśupatas \\
+    562 &                            Medieval Śrīvaiṣṇavism \\
+    570 &             Supreme Master Ching Hai World Society \\
+    580 &                                    Nāth Sampradāya \\
+    582 &                             Siamese (Central Thai) \\
+    586 &                          Kelantanese Thai Religion \\
+    589 &                                             Warrau \\
+    592 &                                       Veerashaivas \\
+    597 &                        Confucianism - Eastern Zhou \\
+    599 &                                             Lepcha \\
+    605 &                                            Burmese \\
+    613 &                                              Maori \\
+    618 &                                             Nuxalk \\
+    619 &                                             Gilyak \\
+    624 &                                     The Roshaniyya \\
+    625 &                                       Copper Inuit \\
+    627 &                                            Tikopia \\
+    629 &                                    Newar Buddhists \\
+    630 &                                             Aranda \\
+    631 &                                             Cayapa \\
+    635 &                                             Ifugao \\
+    638 &                                            Klamath \\
+    639 &          Chinese Esoteric Buddhism (Tang Tantrism) \\
+    645 &                     Meo Muslim, Mev, Mewati Muslim \\
+    646 &                        Lakota Religious Traditions \\
+    647 &                                          Havasupai \\
+    649 & Worshippers at the Chidambaram Nataraja Temple,... \\
+    652 &                                               Tiwi \\
+    655 &                                            Siriono \\
+    660 &                                               Iban \\
+    666 &                                              Siuai \\
+    669 &                                           Orokaiva \\
+    674 &                                             Aymara \\
+    675 &                                           Chukchee \\
+    679 &                                             Santal \\
+    680 &                           Gujarati Mata Worshipers \\
+    682 &                                             Lakher \\
+    684 &                                              Huron \\
+    688 &                                Darul Uloom Deoband \\
+    690 &                             Ahl-e-Sunnat wa Jamaat \\
+    711 &                                              Kwoma \\
+    713 &                                 Northern Saulteaux \\
+    719 &                               Hinduism in Trinidad \\
+    726 &                                     Early Śramaṇas \\
+    727 &                                             Raglai \\
+    742 &                                    Thai Bhikkhunis \\
+    745 &                                               Buka \\
+    749 &                                   Korean shamanism \\
+    751 &                       Buddhism in the Mekong Delta \\
+    752 &                                              Haroi \\
+    755 &                                       Uyghur Islam \\
+    759 &                                           Comanche \\
+    765 &                               The Oneida Community \\
+    770 &                              Thai Forest Tradition \\
+    771 &                              Muscular Christianity \\
+    826 &                    The Church of Christ, Scientist \\
+    833 &                                               Dobu \\
+    841 &                                            Sa skya \\
+    846 &                      Xuanzang's Yogācāra Tradition \\
+    848 &                                          Sadducees \\
+    849 & """"""""Gaiwiio Religion,"""""""" """"""""Longh... \\
+    851 &                       Sikhism in the United States \\
+    854 &                                pre-Christian Irish \\
+    860 &                                         Kimpa Vita \\
+    867 &                                   Nyingma Treasure \\
+    877 & The International Network of Engaged Buddhists ... \\
+    882 &                                            Orphism \\
+    885 &                    Contemporary West African Vodun \\
+    893 &                                    Sethian Gnostic \\
+    894 & Universal Fellowship of Metropolitan Community ... \\
+    896 &                                       Sannō Shintō \\
+    898 &                               Rastafari of Jamaica \\
+    910 &                  Christian Base Community movement \\
+    919 &                Catholicism in contemporary Croatia \\
+    921 &                                              Bhils \\
+    924 &                               Muridiyya of Senegal \\
+    925 &                       Rabbinic Judaism (Babylonia) \\
+    929 &                                      Drikung Kagyu \\
+    933 &                                        Marcionites \\
+    937 &                                     Vestal Virgins \\
+    938 &                                             Ugarit \\
+    939 &                 Goodenough and Fergusson Islanders \\
+    940 &                       Julio-Claudian Imperial Cult \\
+    946 &                                Nyingma (rnying ma) \\
+    949 &                           The Church of All Worlds \\
+    952 &                                     Ethiopian Jews \\
+    957 &                                   Spartan Religion \\
+    961 &                           Romanian Orthodox Church \\
+    962 &                                       Amdo Gelukpa \\
+    964 &                              Baul Fakirs of Bengal \\
+    967 &                             Unitarian Universalism \\
+    969 &                 Adi Dravida/Valluva Sakya Buddhism \\
+    971 &                                          Gāṇapatya \\
+    973 &      The Sarna religion of the Oraons of Jharkhand \\
+    976 &                                   Mising Community \\
+    978 &                             Indonesian Catholicism \\
+    980 & Pure Land Buddhist Schools in Early Medieval Japan \\
+    981 &                                    Nation of Islam \\
+    982 &    The Samaritans (Persian to early Roman periods) \\
+    985 &                                     The Victorines \\
+    986 &                                            Theurgy \\
+    991 &                                      Beat Buddhism \\
+    995 &                                  Tamil Neo-Saivism \\
+    997 &              Ancient Egypt - Early Dynastic Period \\
+   1028 &                 German Pietists (Hasidei Ashkenaz) \\
+   1037 &         Third Intermediate Period in Ancient Egypt \\
+   1044 &                 Han Imperial Cult under Emperor Wu \\
+   1060 &                               The Taizhou Movement \\
+   1071 &                         Digital Shinto Communities \\
+   1083 &                       Drukpa Kagyü School (Bhutan) \\
+   1087 &                                       The Bogomils \\
+   1106 &                     Old Kingdom Religion at Abydos \\
+   1109 &                          Chan Buddhism in the Song \\
+   1133 &                      Religion in Greco-Roman Egypt \\
+   1134 &                                            Tiantai \\
+   1136 &       The Fellowship of Goodness 同善社 (Tongshanshe) \\
+   1153 &                 Russian Orthodox Mission in Alaska \\
+   1154 &                                The Cult of the Fox \\
+   1156 &                               Solovetski monastery \\
+   1180 &                        Batak Traditional Religions \\
+   1183 &            Religion at Nippur in the Ur III period \\
+   1197 &                        Atheism in the Soviet Union \\
+   1199 &                                                Tiv \\
+   1223 &                                               Toda \\
+   1234 &                                            Ashanti \\
+   1279 &                                  Mandarese Muslims \\
+   1283 &                                   Butonese Muslims \\
+   1284 &                              Religion of Phoenicia \\
+   1289 &                                   Buginese Muslims \\
+   1299 &                    Russians (of Viriatino Village) \\
+   1300 & Enlace de Agentes de Pastoral Indígena (EAPI, N... \\
+   1301 &                                    Moche (Mochica) \\
+   1312 &                                            Bishnoi \\
+   1319 &                                         Reginistas \\
+   1322 &                    Pagans under the Emperor Julian \\
+   1335 &                        Congregation of the Oratory \\
+   1341 & Muslim Students Association of the United State... \\
+   1344 &                  Tibetan Nonsectarianism (ris med) \\
+   1352 &                              Śākadvīpīya Brāhmaṇas \\
+   1357 &                                         Encratites \\
+   1386 &                                Liumen (Liu School) \\
+   1390 &                                     Eastern Apache \\
+   1396 &                Ptolemaic Egypt - Egyptian Religion \\
+   1397 & The Classic Period Peripheral Coastal Lowlands ... \\
+   1409 &                                    Formative Olmec \\
+   1412 &                                           Tenrikyo \\
+   1415 &                                           Anomeans \\
+   1419 & Ancient Egyptian Religion in the Early 18th Dyn... \\
+   1426 &             Early Missionary Christianity in China \\
+   1433 &                                          Novatians \\
+   1436 &                        The Monastic School of Gaza \\
+   1441 &                            Mexica (Aztec) Religion \\
+   1454 &                            Hesychastic Controversy \\
+   1468 &      Eastern Christianity From Nicaea to Chalcedon \\
+   1495 &                                  Secular Buddhists \\
+   1521 & Order of the Hermits of St Augustine (Augustini... \\
+   1542 &                                            Umbanda \\
+\bottomrule
+\end{tabular}

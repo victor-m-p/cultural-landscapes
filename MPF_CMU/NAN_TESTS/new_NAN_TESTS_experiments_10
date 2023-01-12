@@ -1,0 +1,8 @@
+Starting new test 0 at time 2022-12-10 14:46:10 -0500...
+Full data -- 0: 0.587431
+Full data -- 64: 0.43464
+Full data -- 128: 0.339418
+Full data -- 256: 0.248679
+Full data -- 512: 0.165666
+Full data -- 1024: 0.081637
+slurmstepd: error: *** JOB 13609135 ON r305 CANCELLED AT 2022-12-10T18:14:35 ***

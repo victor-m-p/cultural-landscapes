@@ -1,0 +1,21 @@
+\begin{tabular}{lllrrr}
+\toprule
+  Group &  Color &                          Question &  Avg. S &  Avg. O &   Diff \\
+\midrule
+Group 1 &   Blue &                       Grave goods &    1.60 &   53.77 & -52.18 \\
+Group 1 &   Blue & Monumental religious architecture &  100.00 &   48.70 &  51.30 \\
+Group 1 &   Blue &      Small-scale rituals required &   96.79 &   59.66 &  37.13 \\
+Group 2 & Pastel &                       Grave goods &   97.10 &   19.11 &  77.99 \\
+Group 2 & Pastel & Monumental religious architecture &   90.81 &   46.49 &  44.32 \\
+Group 2 & Pastel &      Co-sacrifices in tomb/burial &   36.14 &    0.00 &  36.14 \\
+Group 3 &  Green & Monumental religious architecture &    0.00 &   85.56 & -85.56 \\
+Group 3 &  Green &        Official political support &   45.36 &   74.34 & -28.98 \\
+Group 3 &  Green &         Distinct written language &    0.00 &   28.24 & -28.24 \\
+Group 4 & Orange &      Small-scale rituals required &    0.00 &   75.48 & -75.48 \\
+Group 4 & Orange & Monumental religious architecture &  100.00 &   55.15 &  44.85 \\
+Group 4 & Orange &                        Scriptures &  100.00 &   72.43 &  27.57 \\
+Group 5 &   Grey &        Supernatural beings punish &   17.20 &   98.57 & -81.37 \\
+Group 5 &   Grey &   Supernatural monitoring present &   18.87 &   97.95 & -79.08 \\
+Group 5 &   Grey & Monumental religious architecture &    7.73 &   64.28 & -56.55 \\
+\bottomrule
+\end{tabular}

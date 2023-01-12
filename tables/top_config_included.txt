@@ -1,0 +1,222 @@
+\begin{tabular}{lrlr}
+\toprule
+  Group &  DRH ID &                                   Entry name (DRH) &   Weight \\
+\midrule
+Group 1 &     200 &                                       Nechung Cult & 1.000000 \\
+Group 1 &     390 &                                             Dasara & 1.000000 \\
+Group 1 &     415 &                            Shaiva World Renouncers & 1.000000 \\
+Group 1 &     420 &                             Swaminarayan Sampraday & 1.000000 \\
+Group 1 &     440 &                   Jain Digambara Tantra, Karnataka & 1.000000 \\
+Group 1 &     442 &                                           Donatism & 1.000000 \\
+Group 1 &     483 &                     Northern Irish Roman Catholics & 1.000000 \\
+Group 1 &     526 &                                 Hmong Christianity & 1.000000 \\
+Group 1 &     564 & Tribal Christianity (and allied castes) in the ... & 1.000000 \\
+Group 1 &     654 &                            12th-13th c Cistercians & 1.000000 \\
+Group 1 &     661 &                            Congregation of Savigny & 1.000000 \\
+Group 1 &     714 &                                 Tamil Śaiva Bhakti & 1.000000 \\
+Group 1 &     899 &                               Nahdlatul Ulama (NU) & 1.000000 \\
+Group 1 &     926 &                                   Ladakhi Buddhism & 1.000000 \\
+Group 1 &     943 &               Moravian Missionaries in Nunatsiavut & 1.000000 \\
+Group 1 &     963 &                                The Knights Templar & 1.000000 \\
+Group 1 &     966 & Naqshbandī Order, Naqshbandī Tarīqa, Naqshbandī... & 1.000000 \\
+Group 1 &     974 &              Greek Chalcedonian Christians, Nicaea & 1.000000 \\
+Group 1 &     987 &                      Parsis, Zoroastrians of India & 1.000000 \\
+Group 1 &     989 &                                           Opus Dei & 1.000000 \\
+Group 1 &    1038 &                         Sino-Muslims in Qing China & 1.000000 \\
+Group 1 &    1043 &                                      Islam in Aceh & 1.000000 \\
+Group 1 &    1293 &         The Zapotec or Ben 'Zaa (The Cloud People) & 1.000000 \\
+Group 1 &    1321 &                               Mourides (Muridiyya) & 1.000000 \\
+Group 1 &    1511 &                                             Sokoto & 1.000000 \\
+Group 1 &    1218 &                          Yiguan Dao/I-Kuan Tao 一貫道 & 0.904448 \\
+Group 1 &     972 &                             Nestorian Christianity & 0.867347 \\
+Group 1 &    1108 &        Early Christianity and Monasticism in Egypt & 0.839818 \\
+Group 1 &     227 & Hindu Goddess Worship in Northwest India—Modern... & 0.839254 \\
+Group 1 &    1012 &                     Inhabitants of Medieval Kurgus & 0.835762 \\
+Group 1 &     176 &                                    Qumran Movement & 0.796116 \\
+Group 1 &     944 &                          Mohyla's Ukrainian Church & 0.766196 \\
+Group 1 &     636 &              Balinese Śaiva priests (pedanda siwa) & 0.687420 \\
+Group 1 &    1466 &                                 Islamic modernists & 0.666150 \\
+Group 1 &     900 &                                          Pharisees & 0.593477 \\
+Group 1 &     927 &                                            Zealots & 0.558550 \\
+Group 1 &     676 & The Order of the Holy Trinity for the Redemptio... & 0.550066 \\
+Group 1 &     493 &     Krishna Worship in North India - Modern Period & 0.508717 \\
+Group 1 &     387 &         Ahmadi; Ahmadiyya Muslim Jama'at; Ahmadiya & 0.501508 \\
+Group 1 &     691 &                                                Fur & 0.489054 \\
+Group 1 &     843 &                          Bnay Qyāmā and Bnāt Qyāmā & 0.486210 \\
+Group 1 &     441 &                               Worshipers of Śītalā & 0.468467 \\
+Group 1 &     769 &                                              Wogeo & 0.467228 \\
+Group 1 &     965 &                              Pachomian Monasticism & 0.447511 \\
+Group 1 &    1268 &              Monotheistic Pre-Islamic South Arabia & 0.431666 \\
+Group 1 &     623 &                        Diasporic American Hinduism & 0.329520 \\
+Group 2 &     230 &                            Religion in Mesopotamia & 1.000000 \\
+Group 2 &     358 &            16th-17th c. Gauḍīya Vaiṣṇava Tradition & 1.000000 \\
+Group 2 &     476 &                                          Cham Bani & 1.000000 \\
+Group 2 &     534 &                                Roman Imperial Cult & 1.000000 \\
+Group 2 &     632 &                         Local Religion at Selinous & 1.000000 \\
+Group 2 &     738 &                                   Ancient Egyptian & 1.000000 \\
+Group 2 &     788 &           The Late Bronze Age City-State of Ugarit & 1.000000 \\
+Group 2 &     869 &                     Sichuan Esoteric Buddhist Cult & 1.000000 \\
+Group 2 &     891 &                                   Peruvian Mormons & 1.000000 \\
+Group 2 &     931 &          The Society of Jesus (Jesuits) in Britain & 1.000000 \\
+Group 2 &     960 &                                          Bön (Bon) & 1.000000 \\
+Group 2 &     970 &                   Cult of Isis (Mysteries of Isis) & 1.000000 \\
+Group 2 &     983 &  Tibetan and Himalayan Mundane and Landscape Cults & 1.000000 \\
+Group 2 &     993 & Pontifex Maximus and Pontifices (Pontifical Col... & 1.000000 \\
+Group 2 &    1004 &                            Religion in Roman Ostia & 1.000000 \\
+Group 2 &    1006 &                        Ancient Egypt - Old Kingdom & 1.000000 \\
+Group 2 &    1008 &          Ancient Egypt - First Intermediate Period & 1.000000 \\
+Group 2 &    1041 &                                 Korean Catholicism & 1.000000 \\
+Group 2 &    1125 &               Ancient Egypt - the Ramesside Period & 1.000000 \\
+Group 2 &    1129 &                                Ancient Thessalians & 1.000000 \\
+Group 2 &    1140 &                        Early Medieval Confucianism & 1.000000 \\
+Group 2 &    1192 &                                         Kaharingan & 1.000000 \\
+Group 2 &    1248 &                Religion in the Old Assyrian Period & 1.000000 \\
+Group 2 &    1051 & Religion at Tell el-Dab'a (ancient Avaris) in A... & 0.987358 \\
+Group 2 &     470 &                              Archaic Spartan Cults & 0.984118 \\
+Group 2 &    1191 &                 Religion in Greco-Roman Alexandria & 0.981580 \\
+Group 2 &     354 &           Priests and Scholars of Hellenistic Uruk & 0.980065 \\
+Group 2 &     681 &                                    Sargonic Empire & 0.978410 \\
+Group 2 &    1069 &                         Religion at Deir el-Medina & 0.957603 \\
+Group 2 &     712 &                                            Huichol & 0.935806 \\
+Group 2 &    1162 &                                       Lingbao dafa & 0.935173 \\
+Group 2 &    1258 &                                  Religion in Judah & 0.935173 \\
+Group 2 &    1323 &                                             Luguru & 0.933018 \\
+Group 2 &     722 &                                        Gros Ventre & 0.923132 \\
+Group 2 &     757 &                                           Kiribati & 0.919547 \\
+Group 2 &    1189 &                                      Yādiya/Sam'al & 0.907428 \\
+Group 2 &    1337 &                                  Tell Afis (Syria) & 0.899770 \\
+Group 2 &     424 &                                Achaemenid Religion & 0.894933 \\
+Group 2 &     941 &                Chan Buddhists in early Qing period & 0.862623 \\
+Group 2 &    1101 &                                            Natchez & 0.828845 \\
+Group 2 &    1015 & Ancient Egypt - Predynastic Period - Early Naqa... & 0.826945 \\
+Group 2 &     852 &       Pre-Christian Religion / Paganism in Ireland & 0.821459 \\
+Group 2 &    1227 &              Polytheistic Pre-Islamic South Arabia & 0.794839 \\
+Group 2 &     850 &          Pre-Christian Religion / Paganism in Gaul & 0.772376 \\
+Group 2 &    1295 &                                           Donatism & 0.771752 \\
+Group 2 &    1231 & Shenxiao 神霄 (""""""""Divine Empyrean"""""""") D... & 0.769997 \\
+Group 2 &     479 & Mesopotamian city-state cults of the Early Dyna... & 0.769891 \\
+Group 2 &     257 &                                    Classic Zapotec & 0.738495 \\
+Group 2 &     621 &                                           Haitians & 0.707025 \\
+Group 2 &     671 &                                       Mbau Fijians & 0.694843 \\
+Group 2 &    1420 &                                              Creek & 0.634885 \\
+Group 2 &    1241 &                                Taiping 太平 Movement & 0.610321 \\
+Group 2 &    1246 &                                            Shilluk & 0.588945 \\
+Group 2 &     739 &                                            Lakalai & 0.551366 \\
+Group 2 &     686 &                                           Popoluca & 0.534538 \\
+Group 2 &     228 &                                  Late Chosŏn Korea & 0.531514 \\
+Group 2 &     662 &                                            Goajiro & 0.517860 \\
+Group 2 &     590 &                         Huayan School (Early Tang) & 0.517037 \\
+Group 2 &     733 &                                              Kaska & 0.500989 \\
+Group 2 &     870 &                   Postsocialist Mongolian Buddhism & 0.491053 \\
+Group 2 &    1149 &                         Christianity in Tang China & 0.467997 \\
+Group 2 &    1172 &                     Twofold Mystery (Chongxuan 重玄) & 0.451819 \\
+Group 2 &     934 & Mongolian Buddhism during the Revolutionary Period & 0.447773 \\
+Group 2 &     578 &                                               Gond & 0.423571 \\
+Group 2 &     224 &                                  Old Norse Fornsed & 0.423183 \\
+Group 2 &     888 &                                      Céli Dé monks & 0.389144 \\
+Group 2 &    1024 &                         Universal Salvation Ritual & 0.343775 \\
+Group 2 &     732 &                                         Marquesans & 0.194459 \\
+Group 3 &     416 &                                         Edinoverie & 1.000000 \\
+Group 3 &     563 &  Gaddi, a Hindu community of the Western Himalayas & 1.000000 \\
+Group 3 &     685 &                                             Badjau & 1.000000 \\
+Group 3 &     857 &                                        Wesleyanism & 1.000000 \\
+Group 3 &     873 &                               The Branch Davidians & 1.000000 \\
+Group 3 &     879 &                              Free Methodist Church & 1.000000 \\
+Group 3 &     880 & Egyptian Salafism (inluding North Africa and We... & 1.000000 \\
+Group 3 &     884 &                  Sub Saharan Africa Pentecostalism & 1.000000 \\
+Group 3 &     886 & Pushtimarg (The Path of Grace) in the UK and Gu... & 1.000000 \\
+Group 3 &     914 &                                 Tariqa Shadhiliyya & 1.000000 \\
+Group 3 &     928 &      The Ghost Dance Movement and the Lakota Sioux & 1.000000 \\
+Group 3 &     942 &                 African Methodist Episcopal Church & 1.000000 \\
+Group 3 &     950 &                   The Religious Society of Friends & 1.000000 \\
+Group 3 &     968 &  Anabaptist Mennonites in North America, 1683-2021 & 1.000000 \\
+Group 3 &     975 & Neo-Charismatic Movement - Third Wave Charismat... & 1.000000 \\
+Group 3 &     984 &                      Calvinism (Early/Reformation) & 1.000000 \\
+Group 3 &     988 &                  Churches of Christ- United States & 1.000000 \\
+Group 3 &    1013 &                Estado da Índia Renegades in Deccan & 1.000000 \\
+Group 3 &    1178 &                        Modern Mystery School (MMS) & 1.000000 \\
+Group 3 &    1247 &                                          Exovedate & 1.000000 \\
+Group 3 &    1251 &                                             Tsonga & 1.000000 \\
+Group 3 &    1307 &                                  Southern Baptists & 1.000000 \\
+Group 3 &    1311 &                                Jehovah's Witnesses & 1.000000 \\
+Group 3 &    1334 &              No-debt Movement in US Evangelicalism & 1.000000 \\
+Group 3 &    1517 &                      Tunisian Women's Associations & 1.000000 \\
+Group 3 &    1309 &                                     Circumcellions & 1.000000 \\
+Group 3 &     609 &                                           Tallensi & 0.994859 \\
+Group 3 &     650 &                                              Manus & 0.977809 \\
+Group 3 &     858 &      The New Prophecy or """"""""Montanism"""""""" & 0.974480 \\
+Group 3 &     953 &                                           Sachchai & 0.969290 \\
+Group 3 &     892 & Charismatic Renewal Movement in Christianity - ... & 0.968786 \\
+Group 3 &     389 &                          Iban traditional religion & 0.967796 \\
+Group 3 &     602 &                                             Amhara & 0.934571 \\
+Group 3 &     948 &                            Christianity in Ephesus & 0.913105 \\
+Group 3 &     456 &                                        The Essenes & 0.910723 \\
+Group 3 &     637 &                                             Yahgan & 0.906316 \\
+Group 3 &     721 &                                             Semang & 0.894063 \\
+Group 3 &     994 & Monastic Communities of Lower Egypt: Nitria, Ke... & 0.884146 \\
+Group 3 &    1370 &                                               Teda & 0.873553 \\
+Group 3 &     729 &                                             Kikuyu & 0.867582 \\
+Group 3 &     196 &                Pauline Christianity (ca. 45-60 CE) & 0.843712 \\
+Group 3 &     887 &                  Postsocialist Mongolian Shamanism & 0.841654 \\
+Group 3 &     667 &                                               Ainu & 0.839201 \\
+Group 3 &     794 &                                              Omaha & 0.822277 \\
+Group 3 &     614 &                                              !Kung & 0.738058 \\
+Group 3 &     657 &                                            Trukese & 0.722605 \\
+Group 3 &     897 &                                     Gaengjeongyudo & 0.719017 \\
+Group 3 &     748 &                                              Lamet & 0.712207 \\
+Group 3 &     633 &                                             Mādhva & 0.696849 \\
+Group 3 &     607 &                                             Mohism & 0.665228 \\
+Group 3 &     802 &                         Chinese Nunnery in Myanmar & 0.651294 \\
+Group 3 &     736 &                                             Jivaro & 0.648965 \\
+Group 3 &     182 &                               Pauline Christianity & 0.635522 \\
+Group 3 &    1210 &                                              Mende & 0.634830 \\
+Group 3 &    1434 &                                               Kuna & 0.625603 \\
+Group 3 &     581 &                                Mentawai (Rereiket) & 0.608520 \\
+Group 3 &     620 &                                             Papago & 0.606635 \\
+Group 3 &     492 &                                   Roman Divination & 0.596830 \\
+Group 3 &     651 &                                            Kapauku & 0.566748 \\
+Group 3 &     918 &                                            Fangshi & 0.564204 \\
+Group 3 &     744 &                                      Rwala Bedouin & 0.527986 \\
+Group 3 &     626 &                                 Barama River Carib & 0.525387 \\
+Group 3 &     576 &                          Kuy traditional religions & 0.491352 \\
+Group 3 &     717 &                                               Igbo & 0.386645 \\
+Group 3 &    1110 &                                              Twana & 0.368901 \\
+Group 4 &     419 &          The Worship of Jagannath in Puri (Odisha) & 1.000000 \\
+Group 4 &     839 &                  19th century German Protestantism & 1.000000 \\
+Group 4 &     855 &            Middle-Class Migrant Muslims in the UAE & 1.000000 \\
+Group 4 &     906 &                              The Church of England & 1.000000 \\
+Group 4 &     935 &                            Nigerian Pentecostalism & 1.000000 \\
+Group 4 &     958 &                                   Society of Jesus & 1.000000 \\
+Group 4 &     977 &                                      Chishti Sufis & 1.000000 \\
+Group 4 &    1076 &                  Inquisitors of Goa's Santo Ofício & 1.000000 \\
+Group 4 &    1127 &                           Anglican Church of Korea & 1.000000 \\
+Group 4 &    1196 &                                   K’iche’ (Quiché) & 1.000000 \\
+Group 4 &    1371 &         Twelver Shi'ism in post-revolutionary Iran & 1.000000 \\
+Group 4 &    1374 &              The Reformed Church (Early Orthodoxy) & 1.000000 \\
+Group 4 &    1522 &                 Tijaniyya Order/ الطريقة التيجانية & 1.000000 \\
+Group 4 &     883 &  Catholics in the People's Republic of China (PRC) & 0.996349 \\
+Group 4 &    1333 &                                     Cult of Thecla & 0.904318 \\
+Group 4 &    1349 &                            The Dingxiang Wang Cult & 0.618032 \\
+Group 4 &    1376 &                         African Initiated Churches & 0.532484 \\
+Group 5 &     842 &                            American Evangelicalism & 1.000000 \\
+Group 5 &     862 &                                     Ilm-e-Khshnoom & 1.000000 \\
+Group 5 &     871 &                                       Spiritualism & 1.000000 \\
+Group 5 &     915 &   Protestantism welcoming People with Disabilities & 1.000000 \\
+Group 5 &    1304 & Peyote Religion (Peyotism) and the Native Ameri... & 1.000000 \\
+Group 5 &     764 &                                   Timbira (Canela) & 0.956742 \\
+Group 5 &     677 &                                             Yapese & 0.888045 \\
+Group 5 &     658 &                                            Mapuche & 0.878962 \\
+Group 5 &     859 &                                       Valentinians & 0.835024 \\
+Group 5 &    1228 &                                               Lesu & 0.826032 \\
+Group 5 &     812 &                           Temple of the Jedi Order & 0.811927 \\
+Group 5 &    1392 &                                         Messalians & 0.791759 \\
+Group 5 &     723 &                                             Trumai & 0.711991 \\
+Group 5 &    1010 &                                     Pythagoreanism & 0.661776 \\
+Group 5 &     768 &                                          Mundurucu & 0.640137 \\
+Group 5 &    1240 &                                             Azande & 0.636037 \\
+Group 5 &     689 &                                             Lengua & 0.526350 \\
+Group 5 &     737 &                                     Nama Hottentot & 0.514911 \\
+Group 5 &     710 &                                            Hidatsa & 0.503242 \\
+Group 5 &    1458 &                                              Mbuti & 0.353013 \\
+\bottomrule
+\end{tabular}

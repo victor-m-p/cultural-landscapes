@@ -1,0 +1,4 @@
+Starting new test 0 at time 2022-12-07 00:16:40 -0500...
+/var/spool/slurm/d/job13535108/slurm_script:16:in `block in <main>': undefined local variable or method `n_proc' for main:Object (NameError)
+	from /var/spool/slurm/d/job13535108/slurm_script:11:in `times'
+	from /var/spool/slurm/d/job13535108/slurm_script:11:in `<main>'

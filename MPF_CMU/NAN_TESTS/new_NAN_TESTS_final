@@ -1,0 +1,5 @@
+Starting new test 0 at time 2022-12-08 18:22:47 -0500...
+Full data -- 0: 0.046442
+Full data -- 64: 0.408739
+Full data -- 128: 0.329584
+slurmstepd: error: *** JOB 13569469 ON r353 CANCELLED AT 2022-12-08T18:38:02 DUE TO TIME LIMIT ***

@@ -1,0 +1,12 @@
+Starting new test 0 at time 2022-12-10 16:48:11 -0500...
+Full data -- 0: 0.495961
+Full data -- 64: 0.371568
+Full data -- 128: 0.319014
+Full data -- 256: 0.240749
+Full data -- 512: 0.1546
+Full data -- 1024: 0.092027
+KL: 0.385553
+Clock time: 0.490667000000 seconds.
+
+NA data -- 64: 0.385553
+slurmstepd: error: *** JOB 13609958 ON r224 CANCELLED AT 2022-12-10T18:14:35 ***

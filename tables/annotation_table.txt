@@ -1,0 +1,17 @@
+\begin{tabular}{lll}
+Group & Entry name (short) & Entry name (DRH) \\
+Group 1 & Cistercians & 12th-13th c Cistercians \\
+Group 1 & Islam in Aceh & Islam in Aceh \\
+Group 1 & Sokoto & Sokoto \\
+Group 1 & Wogeo & Wogeo \\
+Group 2 & Ancient Egyptian & Ancient Egyptian \\
+Group 2 & Jesuits in Britain & The Society of Jesus (Jesuits) in Britain \\
+Group 2 & Mesopotamia & Religion in Mesopotamia \\
+Group 2 & Roman & Roman Imperial Cult \\
+Group 3 & Jehovah & Jehovah's Witnesses \\
+Group 3 & Tsonga & Tsonga \\
+Group 3 & Calvinism & Calvinism (Early/Reformation) \\
+Group 3 & Free Methodist & Free Methodist Church \\
+Group 5 & Pythagoreanism & Pythagoreanism \\
+Group 5 & Peyote & Peyote Religion (Peyotism) and the Native American Church \\
+\end{tabular}

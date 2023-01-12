@@ -1,0 +1,410 @@
+\begin{tabular}{rl}
+entry_id & entry_name \\
+23 & Late Shang Religion \\
+173 & Johannine Christianity \\
+174 & Matthew-James-Didache Movement \\
+176 & Qumran Movement \\
+182 & Pauline Christianity \\
+190 & Sri Lankan Buddhism (1948-Present) \\
+196 & Pauline Christianity (ca. 45-60 CE) \\
+200 & Nechung Cult \\
+204 & Han Confucianism \\
+217 & Roman private religion \\
+222 & Late Classic Lowland Maya \\
+224 & Old Norse Fornsed \\
+227 & Hindu Goddess Worship in Northwest India—Modern Period \\
+228 & Late Chosŏn Korea \\
+230 & Religion in Mesopotamia \\
+231 & Roman private religion \\
+257 & Classic Zapotec \\
+263 & Irish Catholicism \\
+284 & Yolngu religion \\
+294 & Xuanxue 玄學 \\
+308 & Neo-Assyrian Scholars \\
+310 & Aztec Imperial Core \\
+354 & Priests and Scholars of Hellenistic Uruk \\
+358 & 16th-17th c. Gauḍīya Vaiṣṇava Tradition \\
+364 & Chittagong Plain Buddhists \\
+378 & Bahinabai Chaudhari's Songs: A Performance Tradition in Maharashtra \\
+381 & Sikhism: Guru Nanak to Guru Arjan \\
+383 & Varkaris \\
+387 & Ahmadi; Ahmadiyya Muslim Jama'at; Ahmadiya \\
+389 & Iban traditional religion \\
+390 & Dasara \\
+392 & Sikhism: Guru Hargobind to Guru Gobind Singh \\
+395 & International Society for Krishna Consciousness (ISKCON) \\
+400 & Singaporean Mega-Churches \\
+415 & Shaiva World Renouncers \\
+416 & Edinoverie \\
+419 & The Worship of Jagannath in Puri (Odisha) \\
+420 & Swaminarayan Sampraday \\
+422 & Demeter Cult \\
+424 & Achaemenid Religion \\
+439 & Śaiva Magic \\
+440 & Jain Digambara Tantra, Karnataka \\
+441 & Worshipers of Śītalā \\
+442 & Donatism \\
+455 & Lan Na Buddhism \\
+456 & The Essenes \\
+469 & Won-Buddhism \\
+470 & Archaic Spartan Cults \\
+472 & Karma Kagyu or Kamtsang Kagyu \\
+476 & Cham Bani \\
+477 & Tractarian Movement \\
+478 & Early Indian Buddhism \\
+479 & Mesopotamian city-state cults of the Early Dynastic periods \\
+483 & Northern Irish Roman Catholics \\
+484 & Northern Irish Protestants \\
+485 & Sámi pre-Christian religion \\
+486 & Church of Jesus Christ of Latter-day Saints (early) \\
+490 & Guglielmites \\
+491 & Anglican Church \\
+492 & Roman Divination \\
+493 & Krishna Worship in North India - Modern Period \\
+520 & Cham Ahiér \\
+525 & Church of Jesus Christ of Latter-day Saints (modern) \\
+526 & Hmong Christianity \\
+534 & Roman Imperial Cult \\
+535 & Pāśupatas \\
+562 & Medieval Śrīvaiṣṇavism \\
+563 & Gaddi, a Hindu community of the Western Himalayas \\
+564 & Tribal Christianity (and allied castes) in the Himalayas \\
+570 & Supreme Master Ching Hai World Society \\
+576 & Kuy traditional religions \\
+578 & Gond \\
+580 & Nāth Sampradāya \\
+581 & Mentawai (Rereiket) \\
+582 & Siamese (Central Thai) \\
+586 & Kelantanese Thai Religion \\
+589 & Warrau \\
+590 & Huayan School (Early Tang) \\
+592 & Veerashaivas \\
+597 & Confucianism - Eastern Zhou \\
+599 & Lepcha \\
+602 & Amhara \\
+605 & Burmese \\
+607 & Mohism \\
+609 & Tallensi \\
+613 & Maori \\
+614 & !Kung \\
+618 & Nuxalk \\
+619 & Gilyak \\
+620 & Papago \\
+621 & Haitians \\
+623 & Diasporic American Hinduism \\
+624 & The Roshaniyya \\
+625 & Copper Inuit \\
+626 & Barama River Carib \\
+627 & Tikopia \\
+629 & Newar Buddhists \\
+630 & Aranda \\
+631 & Cayapa \\
+632 & Local Religion at Selinous \\
+633 & Mādhva \\
+635 & Ifugao \\
+636 & Balinese Śaiva priests (pedanda siwa) \\
+637 & Yahgan \\
+638 & Klamath \\
+639 & Chinese Esoteric Buddhism (Tang Tantrism) \\
+645 & Meo Muslim, Mev, Mewati Muslim \\
+646 & Lakota Religious Traditions \\
+647 & Havasupai \\
+649 & Worshippers at the Chidambaram Nataraja Temple, Modern Period \\
+650 & Manus \\
+651 & Kapauku \\
+652 & Tiwi \\
+654 & 12th-13th c Cistercians \\
+655 & Siriono \\
+657 & Trukese \\
+658 & Mapuche \\
+660 & Iban \\
+661 & Congregation of Savigny \\
+662 & Goajiro \\
+666 & Siuai \\
+667 & Ainu \\
+669 & Orokaiva \\
+671 & Mbau Fijians \\
+674 & Aymara \\
+675 & Chukchee \\
+676 & The Order of the Holy Trinity for the Redemption of Captives, 1198-1500 \\
+677 & Yapese \\
+679 & Santal \\
+680 & Gujarati Mata Worshipers \\
+681 & Sargonic Empire \\
+682 & Lakher \\
+684 & Huron \\
+685 & Badjau \\
+686 & Popoluca \\
+688 & Darul Uloom Deoband \\
+689 & Lengua \\
+690 & Ahl-e-Sunnat wa Jamaat \\
+691 & Fur \\
+710 & Hidatsa \\
+711 & Kwoma \\
+712 & Huichol \\
+713 & Northern Saulteaux \\
+714 & Tamil Śaiva Bhakti \\
+717 & Igbo \\
+719 & Hinduism in Trinidad \\
+721 & Semang \\
+722 & Gros Ventre \\
+723 & Trumai \\
+726 & Early Śramaṇas \\
+727 & Raglai \\
+729 & Kikuyu \\
+732 & Marquesans \\
+733 & Kaska \\
+736 & Jivaro \\
+737 & Nama Hottentot \\
+738 & Ancient Egyptian \\
+739 & Lakalai \\
+742 & Thai Bhikkhunis \\
+744 & Rwala Bedouin \\
+745 & Buka \\
+748 & Lamet \\
+749 & Korean shamanism \\
+751 & Buddhism in the Mekong Delta \\
+752 & Haroi \\
+755 & Uyghur Islam \\
+757 & Kiribati \\
+759 & Comanche \\
+764 & Timbira (Canela) \\
+765 & The Oneida Community \\
+768 & Mundurucu \\
+769 & Wogeo \\
+770 & Thai Forest Tradition \\
+771 & Muscular Christianity \\
+788 & The Late Bronze Age City-State of Ugarit \\
+794 & Omaha \\
+802 & Chinese Nunnery in Myanmar \\
+812 & Temple of the Jedi Order \\
+826 & The Church of Christ, Scientist \\
+833 & Dobu \\
+839 & 19th century German Protestantism \\
+841 & Sa skya \\
+842 & American Evangelicalism \\
+843 & Bnay Qyāmā and Bnāt Qyāmā \\
+846 & Xuanzang's Yogācāra Tradition \\
+848 & Sadducees \\
+849 & """"""""Gaiwiio Religion,"""""""" """"""""Longhouse Religion,"""""""" or """"""""The Way of Handsome Lake"""""""" of the Seneca Tribe \\
+850 & Pre-Christian Religion / Paganism in Gaul \\
+851 & Sikhism in the United States \\
+852 & Pre-Christian Religion / Paganism in Ireland \\
+854 & pre-Christian Irish \\
+855 & Middle-Class Migrant Muslims in the UAE \\
+857 & Wesleyanism \\
+858 & The New Prophecy or """"""""Montanism"""""""" \\
+859 & Valentinians \\
+860 & Kimpa Vita \\
+862 & Ilm-e-Khshnoom \\
+867 & Nyingma Treasure \\
+869 & Sichuan Esoteric Buddhist Cult \\
+870 & Postsocialist Mongolian Buddhism \\
+871 & Spiritualism \\
+873 & The Branch Davidians \\
+877 & The International Network of Engaged Buddhists - INEB \\
+879 & Free Methodist Church \\
+880 & Egyptian Salafism (inluding North Africa and West Asia) \\
+882 & Orphism \\
+883 & Catholics in the People's Republic of China (PRC) \\
+884 & Sub Saharan Africa Pentecostalism \\
+885 & Contemporary West African Vodun \\
+886 & Pushtimarg (The Path of Grace) in the UK and Gujarat \\
+887 & Postsocialist Mongolian Shamanism \\
+888 & Céli Dé monks \\
+891 & Peruvian Mormons \\
+892 & Charismatic Renewal Movement in Christianity - Second Wave Pentecostalism \\
+893 & Sethian Gnostic \\
+894 & Universal Fellowship of Metropolitan Community Churches \\
+896 & Sannō Shintō \\
+897 & Gaengjeongyudo \\
+898 & Rastafari of Jamaica \\
+899 & Nahdlatul Ulama (NU) \\
+900 & Pharisees \\
+906 & The Church of England \\
+910 & Christian Base Community movement \\
+914 & Tariqa Shadhiliyya \\
+915 & Protestantism welcoming People with Disabilities \\
+918 & Fangshi \\
+919 & Catholicism in contemporary Croatia \\
+921 & Bhils \\
+924 & Muridiyya of Senegal \\
+925 & Rabbinic Judaism (Babylonia) \\
+926 & Ladakhi Buddhism \\
+927 & Zealots \\
+928 & The Ghost Dance Movement and the Lakota Sioux \\
+929 & Drikung Kagyu \\
+931 & The Society of Jesus (Jesuits) in Britain \\
+933 & Marcionites \\
+934 & Mongolian Buddhism during the Revolutionary Period \\
+935 & Nigerian Pentecostalism \\
+937 & Vestal Virgins \\
+938 & Ugarit \\
+939 & Goodenough and Fergusson Islanders \\
+940 & Julio-Claudian Imperial Cult \\
+941 & Chan Buddhists in early Qing period \\
+942 & African Methodist Episcopal Church \\
+943 & Moravian Missionaries in Nunatsiavut \\
+944 & Mohyla's Ukrainian Church \\
+946 & Nyingma (rnying ma) \\
+948 & Christianity in Ephesus \\
+949 & The Church of All Worlds \\
+950 & The Religious Society of Friends \\
+952 & Ethiopian Jews \\
+953 & Sachchai \\
+957 & Spartan Religion \\
+958 & Society of Jesus \\
+960 & Bön (Bon) \\
+961 & Romanian Orthodox Church \\
+962 & Amdo Gelukpa \\
+963 & The Knights Templar \\
+964 & Baul Fakirs of Bengal \\
+965 & Pachomian Monasticism \\
+966 & Naqshbandī Order, Naqshbandī Tarīqa, Naqshbandīyyah, Khwājagān, \\
+967 & Unitarian Universalism \\
+968 & Anabaptist Mennonites in North America, 1683-2021 \\
+969 & Adi Dravida/Valluva Sakya Buddhism \\
+970 & Cult of Isis (Mysteries of Isis) \\
+971 & Gāṇapatya \\
+972 & Nestorian Christianity \\
+973 & The Sarna religion of the Oraons of Jharkhand \\
+974 & Greek Chalcedonian Christians, Nicaea \\
+975 & Neo-Charismatic Movement - Third Wave Charismatic Movement \\
+976 & Mising Community \\
+977 & Chishti Sufis \\
+978 & Indonesian Catholicism \\
+980 & Pure Land Buddhist Schools in Early Medieval Japan \\
+981 & Nation of Islam \\
+982 & The Samaritans (Persian to early Roman periods) \\
+983 & Tibetan and Himalayan Mundane and Landscape Cults \\
+984 & Calvinism (Early/Reformation) \\
+985 & The Victorines \\
+986 & Theurgy \\
+987 & Parsis, Zoroastrians of India \\
+988 & Churches of Christ- United States \\
+989 & Opus Dei \\
+991 & Beat Buddhism \\
+993 & Pontifex Maximus and Pontifices (Pontifical College) \\
+994 & Monastic Communities of Lower Egypt: Nitria, Kellia, Scetis \\
+995 & Tamil Neo-Saivism \\
+997 & Ancient Egypt - Early Dynastic Period \\
+1004 & Religion in Roman Ostia \\
+1006 & Ancient Egypt - Old Kingdom \\
+1008 & Ancient Egypt - First Intermediate Period \\
+1010 & Pythagoreanism \\
+1012 & Inhabitants of Medieval Kurgus \\
+1013 & Estado da Índia Renegades in Deccan \\
+1015 & Ancient Egypt - Predynastic Period - Early Naqada Culture \\
+1024 & Universal Salvation Ritual \\
+1028 & German Pietists (Hasidei Ashkenaz) \\
+1037 & Third Intermediate Period in Ancient Egypt \\
+1038 & Sino-Muslims in Qing China \\
+1041 & Korean Catholicism \\
+1043 & Islam in Aceh \\
+1044 & Han Imperial Cult under Emperor Wu \\
+1051 & Religion at Tell el-Dab'a (ancient Avaris) in Ancient Egypt \\
+1060 & The Taizhou Movement \\
+1069 & Religion at Deir el-Medina \\
+1071 & Digital Shinto Communities \\
+1076 & Inquisitors of Goa's Santo Ofício \\
+1083 & Drukpa Kagyü School (Bhutan) \\
+1087 & The Bogomils \\
+1101 & Natchez \\
+1106 & Old Kingdom Religion at Abydos \\
+1108 & Early Christianity and Monasticism in Egypt \\
+1109 & Chan Buddhism in the Song \\
+1110 & Twana \\
+1125 & Ancient Egypt - the Ramesside Period \\
+1127 & Anglican Church of Korea \\
+1129 & Ancient Thessalians \\
+1133 & Religion in Greco-Roman Egypt \\
+1134 & Tiantai \\
+1136 & The Fellowship of Goodness 同善社 (Tongshanshe) \\
+1140 & Early Medieval Confucianism \\
+1149 & Christianity in Tang China \\
+1153 & Russian Orthodox Mission in Alaska \\
+1154 & The Cult of the Fox \\
+1156 & Solovetski monastery \\
+1162 & Lingbao dafa \\
+1172 & Twofold Mystery (Chongxuan 重玄) \\
+1178 & Modern Mystery School (MMS) \\
+1180 & Batak Traditional Religions \\
+1183 & Religion at Nippur in the Ur III period \\
+1189 & Yādiya/Sam'al \\
+1191 & Religion in Greco-Roman Alexandria \\
+1192 & Kaharingan \\
+1196 & K’iche’ (Quiché) \\
+1197 & Atheism in the Soviet Union \\
+1199 & Tiv \\
+1210 & Mende \\
+1218 & Yiguan Dao/I-Kuan Tao 一貫道 \\
+1223 & Toda \\
+1227 & Polytheistic Pre-Islamic South Arabia \\
+1228 & Lesu \\
+1231 & Shenxiao 神霄 (""""""""Divine Empyrean"""""""") Daoism \\
+1234 & Ashanti \\
+1240 & Azande \\
+1241 & Taiping 太平 Movement \\
+1246 & Shilluk \\
+1247 & Exovedate \\
+1248 & Religion in the Old Assyrian Period \\
+1251 & Tsonga \\
+1258 & Religion in Judah \\
+1268 & Monotheistic Pre-Islamic South Arabia \\
+1279 & Mandarese Muslims \\
+1283 & Butonese Muslims \\
+1284 & Religion of Phoenicia \\
+1289 & Buginese Muslims \\
+1293 & The Zapotec or Ben 'Zaa (The Cloud People) \\
+1295 & Donatism \\
+1299 & Russians (of Viriatino Village) \\
+1300 & Enlace de Agentes de Pastoral Indígena (EAPI, Network of Indigenous Ministry Agents) \\
+1301 & Moche (Mochica) \\
+1304 & Peyote Religion (Peyotism) and the Native American Church \\
+1307 & Southern Baptists \\
+1309 & Circumcellions \\
+1311 & Jehovah's Witnesses \\
+1312 & Bishnoi \\
+1319 & Reginistas \\
+1321 & Mourides (Muridiyya) \\
+1322 & Pagans under the Emperor Julian \\
+1323 & Luguru \\
+1333 & Cult of Thecla \\
+1334 & No-debt Movement in US Evangelicalism \\
+1335 & Congregation of the Oratory \\
+1337 & Tell Afis (Syria) \\
+1341 & Muslim Students Association of the United States and Canada \\
+1344 & Tibetan Nonsectarianism (ris med) \\
+1349 & The Dingxiang Wang Cult \\
+1352 & Śākadvīpīya Brāhmaṇas \\
+1357 & Encratites \\
+1370 & Teda \\
+1371 & Twelver Shi'ism in post-revolutionary Iran \\
+1374 & The Reformed Church (Early Orthodoxy) \\
+1376 & African Initiated Churches \\
+1386 & Liumen (Liu School) \\
+1390 & Eastern Apache \\
+1392 & Messalians \\
+1396 & Ptolemaic Egypt - Egyptian Religion \\
+1397 & The Classic Period Peripheral Coastal Lowlands Ritual Ballgame Cult \\
+1409 & Formative Olmec \\
+1412 & Tenrikyo \\
+1415 & Anomeans \\
+1419 & Ancient Egyptian Religion in the Early 18th Dynasty \\
+1420 & Creek \\
+1426 & Early Missionary Christianity in China \\
+1433 & Novatians \\
+1434 & Kuna \\
+1436 & The Monastic School of Gaza \\
+1441 & Mexica (Aztec) Religion \\
+1454 & Hesychastic Controversy \\
+1458 & Mbuti \\
+1466 & Islamic modernists \\
+1468 & Eastern Christianity From Nicaea to Chalcedon \\
+1495 & Secular Buddhists \\
+1511 & Sokoto \\
+1517 & Tunisian Women's Associations \\
+1521 & Order of the Hermits of St Augustine (Augustinian friars) \\
+1522 & Tijaniyya Order/ الطريقة التيجانية \\
+1542 & Umbanda \\
+\end{tabular}
