@@ -81,7 +81,7 @@ for i, i12 in enumerate(Z[:,:2].astype(int)):
 link_cols
 
 # actually plot it 
-fig, ax = plt.subplots(figsize = (8, 20), dpi = 300)
+fig, ax = plt.subplots(figsize = (12, 20), dpi = 300)
 dendrogram_dict = plot_dendrogram(model, 
                                   orientation = 'left',
                                   get_leaves = True,
@@ -90,7 +90,7 @@ dendrogram_dict = plot_dendrogram(model,
                                   link_color_func = lambda k: link_cols[k],
                                   above_threshold_color = 'black')
 ax.get_xaxis().set_visible(False)
-plt.savefig('../fig/dendrogram_wes_anderson.pdf')
+plt.savefig('../fig/dendrogram.pdf')
 
 # extract information
 leaves = dendrogram_dict.get('leaves')

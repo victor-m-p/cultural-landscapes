@@ -231,131 +231,27 @@ plt.subplots_adjust(left=0.15, right=0.8, top=1, bottom=0)
 plt.savefig('../fig/landscape_dendrogram.pdf')
 
 # save network information
-network_information.to_csv('../data/analysis/network_information_enriched.csv', index = False)
+recode_comm = {'Group 1': 'Group 1',
+               'Group 2': 'Group 2',
+               'Group 3': 'Group 2',
+               'Group 4': 'Group 3',
+               'Group 5': 'Group 3'}
 
-'''
-## investigate the small community ##
-yellow_comm = network_information[network_information['comm_label'] == 'Group 5']
-yellow_comm = yellow_comm['node_id'].tolist()
-H = G.subgraph(yellow_comm)
+network_information['recode_comm'] = [recode_comm.get(x) for x in network_information['comm_label']]
 
-# plot 
-labels = {i:i+1 for i in H.nodes()}
-pos = nx.spring_layout(H)
+# find weight
+network_information.groupby('recode_comm')['config_prob'].sum()
 
-fig, ax = plt.subplots(dpi = 300)
-nx.draw_networkx_nodes(H, pos)
-nx.draw_networkx_edges(H, pos)
-nx.draw_networkx_labels(H, pos, labels)
-plt.savefig('../fig/tmp.pdf')
+## for Table 4
+network_sub = network_information[['recode_comm', 'config_prob', 'config_id']]
+annotations = annotations.merge(network_sub, on = 'config_id', how = 'inner')
+annotations.sort_values(['recode_comm', 'node_id'],
+                        ascending = [True, True])
 
-H1 = H.subgraph([126, 127, 91, 148, 117, 75, 142, 104])
-H2 = H.subgraph([138, 101, 136, 116, 131, 79])
-c1 = nx.get_node_attributes(H1, 'config_id')
-c2 = nx.get_node_attributes(H2, 'config_id')
 
-# hamming 
-import configuration as cn 
-from fun import bin_states 
-
-# preparation
-configuration_probabilities = np.loadtxt('../data/analysis/configuration_probabilities.txt')
-n_nodes = 20
-configurations = bin_states(n_nodes) 
-
-c1_l = [i for i in c1.values()]
-c2_l = [i for i in c2.values()]
-
-h_list_outer = []
-h_list_inner = []
-for i in c1_l: 
-    h_list_inner = []
-    for j in c2_l: 
-        conf_c1 = cn.Configuration(i, configurations, 
-                                   configuration_probabilities)
-        conf_c2 = cn.Configuration(j, configurations, 
-                                   configuration_probabilities)
-        h_distance = conf_c1.hamming_distance(conf_c2)
-        h_list_inner.append(h_distance)
-    h_list_outer.append(h_list_inner)
-h_list_outer
-
-'''
-## table with splits ##
-network_information['comm_color_code'].unique()
-
-# first split 
-split_1 = {'#F21A00': 1, # red (Group 1)
-           '#c99700': 1, # dark yellow (Group 4)
-           '#EBCC2A': 1, # light yellow (Group 5)
-           '#34649e': 2, # dark blue (Group 2)
-           '#78B7C5': 2} # light blue (Group 3)
-
-network_information = network_information[['config_id', 'config_prob', 'comm_color_code']]
-network_information = network_information.replace({'comm_color_code': split_1})
-network_information = network_information.sort_values('comm_color_code')
-
-# run loop
-def commmunity_weight(network_information, sort_column):
-    config_dict = {}
-    weight_dict = {}
-    for comm in network_information[sort_column].unique(): 
-        config_list = []
-        weight_list = []
-        network_comm = network_information[network_information[sort_column] == comm]
-        for _, row in network_comm.iterrows():
-            config_id = int(row['config_id'])
-            config_prob = row['config_prob']
-            CommObj = cn.Configuration(config_id, configurations,
-                                    configuration_probabilities)
-            conf = CommObj.configuration
-            config_list.append(conf)
-            weight_list.append(config_prob)
-        config_dict[comm] = config_list 
-        weight_dict[comm] = weight_list
-    return config_dict, weight_dict 
-    
-cdict = community_weight(network_information, sort_column)
-wdict = community_weight(network_information, sort_column)
-
-# get values out 
-c1, w1 = config_dict.get(1), weight_dict.get(1)
-c2, w2 = config_dict.get(2), weight_dict.get(2)
-# stack
-s1, s2 = np.stack(c1, axis = 1), np.stack(c2, axis = 1)
-# recode
-s1[s1 == -1] = 0
-s2[s2 == -1] = 0
-# weights
-wn1, wn2 = w1/sum(w1), w2/sum(w2)
-# average
-bit1 = np.average(s1, axis = 1, weights = wn1)
-bit2 = np.average(s2, axis = 1, weights = wn2)
-# turn this into dataframes
-df1 = pd.DataFrame(bit1, columns = ['percent'])
-df1['question_id'] = df1.index + 1
-df2 = pd.DataFrame(bit2, columns = ['percent'])
-df2['question_id'] = df2.index + 1
-# merge with question reference
-question_reference = pd.read_csv('../data/analysis/question_reference.csv')
-df1 = df1.merge(question_reference, on = 'question_id', how = 'inner')
-df2 = df2.merge(question_reference, on = 'question_id', how = 'inner')
-# what is most extreme for each
-pd.set_option('display.max_colwidth', None)
-df1.sort_values('percent').head(5)
-df1.sort_values('percent').tail(5)
-df2.sort_values('percent').head(5)
-df2.sort_values('percent').tail(5)
-# what differs most between them 
-df1 = df1[['percent', 'question']]
-df1 = df1.rename(columns = {'percent': 'percent_1'})
-df2 = df2[['percent', 'question']]
-df2 = df2.rename(columns = {'percent': 'percent_2'})
-df_compare = df1.merge(df2, on = 'question', how = 'inner')
-df_compare = df_compare.assign(difference = lambda x: np.abs(x['percent_1']-x['percent_2']))
-## most similar 
-df_compare.sort_values('difference').head(8)
-df_compare.sort_values('difference').tail(8)
+network_sub = network_information[['comm_label', 'comm_color_code', '']]
+annotations.sort_values(['comm_color_code', 'node_id'],
+                        ascending = [True, True])
 
 ### make the above general and nice ###
 
@@ -420,66 +316,6 @@ excluded_entries_latex = excluded_entries.to_latex(index=False)
 with open('../tables/top_config_excluded.txt', 'w') as f: 
     f.write(excluded_entries_latex)
 
-# table with distinctive features for each community
-'''
-We should make this cleaner.
-'''
-
-## read question reference
-question_reference = pd.read_csv('../data/analysis/question_reference.csv')
-## get the list of questions
-question_id_list = question_reference['question_id'].tolist()
-## generate allstates 
-n_nodes = 20 
-allstates = bin_states(n_nodes)
-## loop through five communities
-## consider rewriting this (this can be made better)
-bit_lst = []
-for comm in range(5): # five communities 
-    idx_focal = network_information[network_information['community'] == comm]['node_id'].tolist()
-    idx_other = network_information[network_information['community'] != comm]['node_id'].tolist()
-    bit_focal = avg_bitstring(allstates, network_information, question_id_list, idx_focal, 'node_id', 'config_id', 'question_id', 'config_prob')
-    bit_other = avg_bitstring(allstates, network_information, question_id_list, idx_other, 'node_id', 'config_id', 'question_id', 'config_prob')
-    bit_focal = bit_focal.rename(columns = {'weighted_avg': f'weighted_avg_focal'})
-    bit_other = bit_other.rename(columns = {'weighted_avg': 'weighted_avg_other'})
-    bit_diff = bit_focal.merge(bit_other, on = 'question_id', how = 'inner')
-    bit_diff = bit_diff.assign(focal_minus_other = lambda x: x[f'weighted_avg_focal']-x['weighted_avg_other'])
-    bit_diff['focal_minus_other_abs'] = np.abs(bit_diff['focal_minus_other'])
-    bit_diff = question_reference.merge(bit_diff, on = 'question_id', how = 'inner')
-    bit_diff = bit_diff.sort_values('focal_minus_other_abs', ascending = False)
-    bit_diff['community'] = comm
-    bit_lst.append(bit_diff)
-
-# concat
-bit_df = pd.concat(bit_lst)
-
-# to percent, and round 
-bit_df = bit_df.assign(weighted_avg_focal = lambda x: round(x['weighted_avg_focal']*100, 2),
-                       weighted_avg_other = lambda x: round(x['weighted_avg_other']*100, 2),
-                       focal_minus_other = lambda x: round(x['focal_minus_other']*100, 2)
-                       )
-
-# three most different per community
-comm_color = network_information[['comm_label', 'community', 'comm_color']].drop_duplicates()
-bit_df = bit_df.merge(comm_color, on = 'community', how = 'inner')
-# top three most distinctive features
-bit_diff = bit_df.sort_values(['focal_minus_other_abs'], ascending=False).groupby('community').head(3)
-# sort values
-bit_diff = bit_diff.sort_values(['comm_label', 'focal_minus_other_abs'], ascending = [True, False])
-# select columns
-bit_diff = bit_diff[['comm_label', 'comm_color', 'question', 'weighted_avg_focal', 'weighted_avg_other', 'focal_minus_other']]
-# rename columns
-bit_diff = bit_diff.rename(columns = {'comm_label': 'Group',
-                                      'comm_color': 'Color',
-                                      'question': 'Question',
-                                      'weighted_avg_focal': 'Avg. S',
-                                      'weighted_avg_other': 'Avg. O',
-                                      'focal_minus_other': 'Diff'
-                                      })
-# to latex table 
-bit_latex_string = bit_diff.to_latex(index=False)
-with open('../tables/community_questions_table.txt', 'w') as f: 
-    f.write(bit_latex_string)
 
 # table with information on the entries that we highlight/annotate in 4A
 '''

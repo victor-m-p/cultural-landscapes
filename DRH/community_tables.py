@@ -22,6 +22,41 @@ def community_weight(network_information, sort_column):
         weight_dict[comm] = weight_list
     return config_dict, weight_dict 
 
+# get the proper weighting 
+def clade_wrangling(c, w, question_reference):
+    labels_1, labels_2 = [x for x in c.keys()]
+    # get values out 
+    c1, w1 = c.get(labels_1), w.get(labels_1)
+    c2, w2 = c.get(labels_2), w.get(labels_2)
+    # stack
+    s1, s2 = np.stack(c1, axis = 1), np.stack(c2, axis = 1)
+    # recode
+    s1[s1 == -1] = 0
+    s2[s2 == -1] = 0
+    # weights
+    wn1, wn2 = np.array(w1)/sum(w1), np.array(w2)/sum(w2)
+    # average
+    bit1 = np.average(s1, axis = 1, weights = wn1)
+    bit2 = np.average(s2, axis = 1, weights = wn2)
+    # turn this into dataframes
+    df = pd.DataFrame(
+        {f'pct_{labels_1}': bit1,
+         f'pct_{labels_2}': bit2})
+    df['question_id'] = df.index + 1
+    # merge with question reference
+    df = df.merge(question_reference, on = 'question_id', how = 'inner')
+    # difference 
+    df = df.assign(difference = lambda x: 
+        np.abs(x[f'pct_{labels_1}']-x[f'pct_{labels_2}']))
+    return df 
+
+def subset_groups(df, sub_list, remap_dict): 
+    df = df[df['comm_label'].isin(sub_list)]
+    df['clade_label'] = [remap_dict.get(x) for x in df['comm_label']]
+    return df
+
+question_reference = pd.read_csv('../data/analysis/question_reference.csv')
+
 # preprocessing 
 ## from "plot_landscape_dendrogram.py"
 network_information = pd.read_csv('../data/analysis/network_information_enriched.csv')
@@ -59,17 +94,11 @@ list_4 = ['Group 4', 'Group 5']
 split_4 = {'Group 4': '1.1.2',
            'Group 5': '1.1.1'}
 
-def subset_groups(df, sub_list, remap_dict): 
-    df = df[df['comm_label'].isin(sub_list)]
-    df['clade_label'] = [remap_dict.get(x) for x in df['comm_label']]
-    return df
-
 # pick out the four splits
 df_1 = subset_groups(network_information, list_1, split_1)
 df_2 = subset_groups(network_information, list_2, split_2)
 df_3 = subset_groups(network_information, list_3, split_3)
 df_4 = subset_groups(network_information, list_4, split_4)
-
 
 # get the dictionaries with configs and weights
 cdict1, wdict1 = community_weight(df_1, 'clade_label')
@@ -78,36 +107,6 @@ cdict3, wdict3 = community_weight(df_3, 'clade_label')
 cdict4, wdict4 = community_weight(df_4, 'clade_label')
 
 # question_reference is necessary for interpretability
-question_reference = pd.read_csv('../data/analysis/question_reference.csv')
-
-# get the proper weighting 
-def clade_wrangling(c, w, question_reference):
-    labels_1, labels_2 = [x for x in c.keys()]
-    # get values out 
-    c1, w1 = c.get(labels_1), w.get(labels_1)
-    c2, w2 = c.get(labels_2), w.get(labels_2)
-    # stack
-    s1, s2 = np.stack(c1, axis = 1), np.stack(c2, axis = 1)
-    # recode
-    s1[s1 == -1] = 0
-    s2[s2 == -1] = 0
-    # weights
-    wn1, wn2 = np.array(w1)/sum(w1), np.array(w2)/sum(w2)
-    # average
-    bit1 = np.average(s1, axis = 1, weights = wn1)
-    bit2 = np.average(s2, axis = 1, weights = wn2)
-    # turn this into dataframes
-    df = pd.DataFrame(
-        {f'pct_{labels_1}': bit1,
-         f'pct_{labels_2}': bit2})
-    df['question_id'] = df.index + 1
-    # merge with question reference
-    df = df.merge(question_reference, on = 'question_id', how = 'inner')
-    # difference 
-    df = df.assign(difference = lambda x: 
-        np.abs(x[f'pct_{labels_1}']-x[f'pct_{labels_2}']))
-    return df 
-
 d1 = clade_wrangling(cdict1, wdict1, question_reference)
 d2 = clade_wrangling(cdict2, wdict2, question_reference)
 d3 = clade_wrangling(cdict3, wdict3, question_reference)
@@ -143,4 +142,79 @@ g4.sort_values('difference', ascending = False).head(5)
 g5 = clade_list[4] # g5 = light yellow
 g5.sort_values('difference', ascending = False).head(5)
 
-## NB: save the long-versions
+## 3 communities version ## 
+incl_list = ['Group 1', 'Group 2', 'Group 3', 'Group 4', 'Group 5']
+red = {'Group 1': "1", # red (Group 1)
+       'Group 4': "0", # dark yellow (Group 4)
+        'Group 5': "0", # light yellow (Group 5)
+        'Group 2': "0", # dark blue (Group 2)
+        'Group 3': "0"} # light blue (Group 3)
+
+blue = {'Group 1': '0',
+        'Group 4': '0',
+        'Group 5': '0',
+        'Group 2': '1',
+        'Group 3': '1'}
+
+yellow = {'Group 1': '0',
+          'Group 4': '1',
+          'Group 5': '1',
+          'Group 2': '0',
+          'Group 3': '0'}
+
+
+# pick out the four splits
+red = subset_groups(network_information, incl_list, red)
+blue = subset_groups(network_information, incl_list, blue)
+yellow = subset_groups(network_information, incl_list, yellow)
+
+# get the dictionaries with configs and weights
+cdict_red, wdict_red = community_weight(red, 'clade_label')
+cdict_blue, wdict_blue = community_weight(blue, 'clade_label')
+cdict_yellow, wdict_yellow = community_weight(yellow, 'clade_label')
+
+# question_reference is necessary for interpretability
+d_red = clade_wrangling(cdict_red, wdict_red, question_reference)
+d_blue = clade_wrangling(cdict_blue, wdict_blue, question_reference)
+d_yellow = clade_wrangling(cdict_yellow, wdict_yellow, question_reference)
+
+# make it pretty 
+d_red['Group'] = 'Group 1'
+d_red['Color'] = 'Red'
+d_red = d_red.rename(columns = {'pct_1': 'Avg. S',
+                                'pct_0': 'Avg. O',
+                                'difference': 'Diff',
+                                'question': 'Question'})
+d_red = d_red[['Group', 'Color', 'Question', 'Avg. S', 'Avg. O', 'Diff']]
+d_red = d_red.sort_values('Diff', ascending = False).head(5)
+
+d_blue['Group'] = 'Group 2'
+d_blue['Color'] = 'Blue'
+d_blue = d_blue.rename(columns = {'pct_1': 'Avg. S',
+                                  'pct_0': 'Avg. O',
+                                  'difference': 'Diff',
+                                  'question': 'Question'})
+d_blue = d_blue[['Group', 'Color', 'Question', 'Avg. S', 'Avg. O', 'Diff']]
+d_blue = d_blue.sort_values('Diff', ascending = False).head(5)
+
+d_yellow['Group'] = 'Group 3'
+d_yellow['Color'] = 'Yellow'
+d_yellow = d_yellow.rename(columns = {'pct_1': 'Avg. S',
+                                      'pct_0': 'Avg. O',
+                                      'difference': 'Diff',
+                                      'question': 'Question'})
+d_yellow = d_yellow[['Group', 'Color', 'Question', 'Avg. S', 'Avg. O', 'Diff']]
+d_yellow = d_yellow.sort_values('Diff', ascending = False).head(5)
+
+d_concat = pd.concat([d_red, d_blue, d_yellow])
+d_concat['Diff'] = d_concat['Avg. S']-d_concat['Avg. O']
+
+# to percent and round 
+d_concat['Avg. S'] = [round(x*100, 2) for x in d_concat['Avg. S']]
+d_concat['Avg. O'] = [round(x*100, 2) for x in d_concat['Avg. O']]
+d_concat['Diff'] = [round(x*100, 2) for x in d_concat['Diff']] 
+
+# to latex 
+bit_latex_string = d_concat.to_latex(index=False)
+with open('../tables/community_questions_table.txt', 'w') as f: 
+    f.write(bit_latex_string)
