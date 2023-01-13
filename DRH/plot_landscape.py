@@ -16,7 +16,7 @@ hamming_information = pd.read_csv('../data/analysis/top_configurations_hamming.c
 
 # add dendrogram information
 network_information = network_information.drop(columns = 'community')
-dendrogram_information = pd.read_csv('../data/analysis/dendrogram_clusters_wes_anderson.csv')
+dendrogram_information = pd.read_csv('../data/analysis/dendrogram_clusters.csv')
 dendrogram_information = dendrogram_information.rename(columns = {'node_cluster': 'community'})
 network_information = network_information.merge(dendrogram_information, on = 'node_id', how = 'inner')
 
@@ -231,6 +231,9 @@ plt.subplots_adjust(left=0.15, right=0.8, top=1, bottom=0)
 plt.savefig('../fig/landscape_dendrogram.pdf')
 
 # save network information
+network_information.to_csv('../data/analysis/network_information_enriched.csv', index = False)
+
+# table 4
 recode_comm = {'Group 1': 'Group 1',
                'Group 2': 'Group 2',
                'Group 3': 'Group 2',
@@ -239,18 +242,35 @@ recode_comm = {'Group 1': 'Group 1',
 
 network_information['recode_comm'] = [recode_comm.get(x) for x in network_information['comm_label']]
 
-# find weight
+
+## test time-periods ##
+network_information
+
+data_raw = pd.read_csv('../data/raw/drh_20221019.csv')
+entry_reference = pd.read_csv('../data/analysis/entry_reference.csv')
+
+# for each entry id, get 
+data_year = data_raw[['entry_id', 'start_year', 'end_year']]
+data_year = data_year.groupby('entry_id').agg({'start_year': 'min', 'end_year': 'max'}).reset_index()
+
+# inner join with the data we already have
+entry_reference = entry_reference[['entry_id', 'entry_name']]
+year_reference = entry_reference.merge(data_year, on = 'entry_id', how = 'inner')
+
+# sort by start year
+year_reference = year_reference.sort_values('start_year', ascending=True)
+
+network_sub = network_information[['entry_id', 'recode_comm']]
+year_reference = network_sub.merge(year_reference, on = 'entry_id', how = 'inner')
+year_reference.groupby('recode_comm')['start_year'].mean()
+
+
+## find weight ##
 network_information.groupby('recode_comm')['config_prob'].sum()
 
-## for Table 4
 network_sub = network_information[['recode_comm', 'config_prob', 'config_id']]
 annotations = annotations.merge(network_sub, on = 'config_id', how = 'inner')
 annotations.sort_values(['recode_comm', 'node_id'],
-                        ascending = [True, True])
-
-
-network_sub = network_information[['comm_label', 'comm_color_code', '']]
-annotations.sort_values(['comm_color_code', 'node_id'],
                         ascending = [True, True])
 
 ### make the above general and nice ###
@@ -264,13 +284,15 @@ Save to latex table with columns
 (group, entry_id_drh, entry_name, weight)
 '''
 
+pd.set_option('display.max_colwidth', None)
 ## load the information on top configuration / entry overlap
 config_entry_overlap = pd.read_csv('../data/analysis/top_configurations_overlap.csv')
 ## add community information
 network_information_sub = network_information[['config_id', 'comm_label']]
 config_entry_overlap = config_entry_overlap.merge(network_information_sub)
+config_entry_overlap
 ## groupby community and entry id 
-config_entry_comm = config_entry_overlap.groupby(['comm_label', 'entry_id'])['entry_prob'].sum().reset_index()
+config_entry_comm = config_entry_overlap.groupby(['comm_label', 'entry_id', 'node_id'])['entry_prob'].sum().reset_index()
 ## if there is a tie between two communities 
 ## for a specific entry_id, then take first
 config_entry_comm = config_entry_comm.sort_values('entry_prob', ascending=False).groupby('entry_id').head(1)
@@ -278,15 +300,34 @@ config_entry_comm = config_entry_comm.sort_values('entry_prob', ascending=False)
 entry_reference = pd.read_csv('../data/analysis/entry_reference.csv')
 config_entry_comm = config_entry_comm.merge(entry_reference, on = 'entry_id', how = 'inner')
 ## select columns 
-config_entry_comm = config_entry_comm[['comm_label', 'entry_id_drh', 'entry_name', 'entry_prob']]
-## sort 
-config_entry_comm = config_entry_comm.sort_values(['comm_label', 'entry_prob', 'entry_id_drh'], ascending = [True, False, True])
+config_entry_comm = config_entry_comm[['comm_label', 'node_id', 'entry_id', 'entry_name', 'entry_prob']]
+
+## new stuff ## 
+# (1) add 1 to node_id
+config_entry_comm['node_id'] = config_entry_comm['node_id'] + 1
+# (2) recode groups 
+new_groups = {
+    'Group 1': 'Group 1', # red
+    'Group 2': 'Group 2.2', # dark blue
+    'Group 3': 'Group 2.1', # light blue
+    'Group 4': 'Group 3.2', # dark yellow
+    'Group 5': 'Group 3.1'} # light yellow
+config_entry_comm = config_entry_comm.replace({'comm_label': new_groups})
+# (3) round prob mass
+config_entry_comm['entry_prob'] = [round(x*100, 2) for x in config_entry_comm['entry_prob']]
+
+### looks great ###
+config_entry_comm = config_entry_comm.sort_values(['comm_label', 'node_id', 'entry_prob', 'entry_id'], 
+                                                  ascending = [True, True, False, True])
+
 ## rename columns 
 config_entry_comm = config_entry_comm.rename(
     columns = {'comm_label': 'Group',
-               'entry_id_drh': 'DRH ID',
+               'node_id': 'Node ID',
+               'entry_id': 'DRH ID',
                'entry_name': 'Entry name (DRH)',
                'entry_prob': 'Weight'})
+
 ## to latex and save
 config_entry_latex = config_entry_comm.to_latex(index=False)
 with open('../tables/top_config_included.txt', 'w') as f: 
@@ -301,22 +342,25 @@ Save to latex table with columns (entry_id_drh, entry_name)
 '''
 ## anti-join 
 top_config_entries = config_entry_overlap[['entry_id']]
+
 excluded_entries = entry_reference.merge(top_config_entries, on = 'entry_id', how = 'left', indicator = True)
 excluded_entries = excluded_entries[excluded_entries['_merge'] == 'left_only']
 ## select columns
-excluded_entries = excluded_entries[['entry_id_drh', 'entry_name']]
+excluded_entries = excluded_entries[['entry_id', 'entry_name']]
 ## sort values 
-excluded_entries = excluded_entries.sort_values('entry_id_drh', ascending = True)
+excluded_entries = excluded_entries.sort_values('entry_id', ascending = True)
 ## rename columns 
 excluded_entries = excluded_entries.rename(
-    columns = {'entry_id_drh': 'DRH ID',
+    columns = {'entry_id': 'DRH ID',
                'entry_name': 'Entry name (DRH)'})
+
 ## to latex and save
 excluded_entries_latex = excluded_entries.to_latex(index=False)
 with open('../tables/top_config_excluded.txt', 'w') as f: 
     f.write(excluded_entries_latex)
 
 
+#### old stuff ####
 # table with information on the entries that we highlight/annotate in 4A
 '''
 Save to latex table with columns: 

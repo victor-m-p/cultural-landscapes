@@ -123,6 +123,8 @@ d4.sort_values('difference', ascending = False).head(5)
 n_groups = 5
 subset_list = ['Group 1', 'Group 2', 'Group 3', 'Group 4', 'Group 5']
 A = np.zeros((n_groups, n_groups), int)
+np.fill_diagonal(A, 1)
+
 clade_list = []
 for row in A: 
     dct = {group:val for group, val in zip(subset_list, row)}

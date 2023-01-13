@@ -90,6 +90,7 @@ dendrogram_dict = plot_dendrogram(model,
                                   link_color_func = lambda k: link_cols[k],
                                   above_threshold_color = 'black')
 ax.get_xaxis().set_visible(False)
+plt.tight_layout()
 plt.savefig('../fig/dendrogram.pdf')
 
 # extract information
@@ -101,4 +102,4 @@ leaf_dataframe = pd.DataFrame(
 )
 
 # save information
-leaf_dataframe.to_csv('../data/analysis/dendrogram_clusters_wes_anderson.csv', index = False)
+leaf_dataframe.to_csv('../data/analysis/dendrogram_clusters.csv', index = False)
