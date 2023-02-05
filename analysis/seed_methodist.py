@@ -1,6 +1,6 @@
 '''
-VMP 2022-01-02: 
-The plot now reproduces.
+Produces figure 4B
+VMP 2022-02-05: save as .svg and .pdf
 '''
 
 import pandas as pd 
@@ -193,7 +193,8 @@ for index, row in d_annot.iterrows():
                 arrowprops = dict(arrowstyle="->",
                                   connectionstyle='arc3',
                                   color='black'))
-plt.savefig('../fig/seed_FreeMethChurch_annotated_mix.pdf')
+plt.savefig('../fig/pdf/seed_FreeMethChurch_annotated_mix.pdf', bbox_inches = 'tight')
+plt.savefig('../fig/svg/seed_FreeMethChurch_annotated_mix.svg', bbox_inches = 'tight')
 
 # transition probabilities
 import configuration as cn 

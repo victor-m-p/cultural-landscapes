@@ -1,7 +1,7 @@
 '''
-VMP 2023-01-02: 
 Visualize the paratmers (Jij, hi) versus surface-level correlations. 
 Produces figure 3A, 3B. 
+VMP 2022-02-05: save .svg and .pdf
 '''
 
 import itertools 
@@ -121,7 +121,8 @@ plt.colorbar(sm_edge, cax = ax_edge, orientation='horizontal')
 plt.colorbar(sm_node, cax = ax_node, orientation='horizontal')
 ax.text(0.24, -0.03, r'Pairwise couplings (J$_{ij}$)', size=20, transform=ax.transAxes)
 ax.text(0.3, -0.25, r'Local fields (h$_i$)', size = 20, transform = ax.transAxes)
-plt.savefig('../fig/parameters.pdf', bbox_inches='tight')
+plt.savefig('../fig/pdf/parameters.pdf', bbox_inches = 'tight')
+plt.savefig('../fig/svg/parameters.svg', bbox_inches = 'tight')
 
 # do it for correlations and means 
 ## only full records 
@@ -204,4 +205,5 @@ plt.colorbar(sm_edge, cax = ax_edge, orientation='horizontal')
 plt.colorbar(sm_node, cax = ax_node, orientation='horizontal')
 ax.text(0.25, -0.03, r"Pearson's correlation", size=20, transform=ax.transAxes)
 ax.text(0.43, -0.25, r'Mean', size = 20, transform = ax.transAxes)
-plt.savefig('../fig/observation.pdf', bbox_inches='tight')
+plt.savefig('../fig/pdf/observation.pdf', bbox_inches = 'tight')
+plt.savefig('../fig/svg/observation.svg', bbox_inches = 'tight')

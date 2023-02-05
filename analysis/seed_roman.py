@@ -1,6 +1,6 @@
 '''
-VMP 2022-01-02: 
-Plot layout has changed slightly. 
+Produces Figure 4C.
+VMP 2022-02-05: save .svg and .pdf 
 '''
 
 import pandas as pd 
@@ -203,7 +203,8 @@ for index, row in d_annot.iterrows():
                                   connectionstyle='arc3',
                                   color='black'))
 plt.subplots_adjust(left=0, right=1, top=0.8, bottom=0.2)
-plt.savefig('../fig/seed_RomanImpCult_annotated_mix.pdf')
+plt.savefig('../fig/pdf/seed_RomanImpCult_annotated_mix.pdf', bbox_inches = 'tight')
+plt.savefig('../fig/svg/seed_RomanImpCult_annotated_mix.svg', bbox_inches = 'tight')
 
 # transition probabilities
 import configuration as cn 

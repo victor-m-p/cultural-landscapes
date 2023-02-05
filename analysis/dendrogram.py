@@ -1,3 +1,9 @@
+'''
+Generates dendrogram (Figure A1).
+Saves the clusters and colors for the landscape plot (Figure 4A).
+VMP 2022-02-05: Save to .svg and .pdf
+'''
+
 import numpy as np
 import pandas as pd 
 from matplotlib import pyplot as plt
@@ -90,8 +96,8 @@ dendrogram_dict = plot_dendrogram(model,
                                   link_color_func = lambda k: link_cols[k],
                                   above_threshold_color = 'black')
 ax.get_xaxis().set_visible(False)
-plt.tight_layout()
-plt.savefig('../fig/dendrogram.pdf')
+plt.savefig('../fig/pdf/dendrogram.pdf', bbox_inches = 'tight')
+plt.savefig('../fig/svg/dendrogram.svg', bbox_inches = 'tight')
 
 # extract information
 leaves = dendrogram_dict.get('leaves')

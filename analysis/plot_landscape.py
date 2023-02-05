@@ -1,7 +1,7 @@
 '''
-VMP 2022-12-16:
 Visualization of top configurations (n = 150) for figure 4A.
 Writes some tables for reference as well. 
+VMP 2023-02-05: save to .svg and .pdf.
 '''
 
 # imports 
