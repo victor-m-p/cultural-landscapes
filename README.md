@@ -3,7 +3,6 @@
 Code for "Inferring Cultural Landscapes with the Inverse Ising Model" (https://www.mdpi.com/1099-4300/25/2/264) accepted in *Entropy* on the 25th of January 2023.
 We would be very grateful for comments, questions, and thoughts. 
 
-## BibTex
 ```
 @article{poulsen2023inferring,
   title={Inferring Cultural Landscapes with the Inverse Ising Model},
