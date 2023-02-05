@@ -6,8 +6,19 @@ Victor Møller Poulsen and Simon DeDeo
 
 We would be very grateful for comments, questions, and thoughts. 
 
-## Components
+## BibTex
+@article{poulsen2023inferring,
+  title={Inferring Cultural Landscapes with the Inverse Ising Model},
+  author={Poulsen, Victor M{\o}ller and DeDeo, Simon},
+  journal={Entropy},
+  volume={25},
+  number={2},
+  pages={264},
+  year={2023},
+  publisher={MDPI}
+}
 
+## Components
 ### ```/data```
 * ```data/mdl_experiments```: processed DRH data (post-MPF).
 * ```data/clean```: processed DRH data (pre-MPF).
