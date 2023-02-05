@@ -209,8 +209,8 @@ nx.draw_networkx_edges(G, pos, alpha = 0.7,
                        edgelist = edgelist_sorted,
                        edge_color = 'tab:grey'
                        )
-plt.savefig('../fig/pdf/landscape_dendrogram.pdf')
-plt.savefig('../fig/svg/landscape_dendrogram.svg')
+plt.savefig('../fig/pdf/landscape_dendrogram.pdf', bbox_inches = 'tight')
+plt.savefig('../fig/svg/landscape_dendrogram.svg', bbox_inches = 'tight')
 
 # main plot (Figure 4A)
 fig, ax = plt.subplots(figsize = (8, 8), dpi = 500)

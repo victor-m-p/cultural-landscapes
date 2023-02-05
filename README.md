@@ -16,6 +16,8 @@ We would be very grateful for comments, questions, and thoughts.
 }
 ```
 
+![](fig/svg/landscape_dendrogram.svg)
+
 ## Components
 ### ```/data```
 * ```data/mdl_experiments```: processed DRH data (post-MPF).
