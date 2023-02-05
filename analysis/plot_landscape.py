@@ -194,9 +194,25 @@ def node_attributes(Graph, sorting_attribute, value_attribute):
 # get node attributes
 nodelist_sorted, nodesize_sorted = node_attributes(G, 'config_prob', 'config_prob')
 _, community_sorted = node_attributes(G, 'config_prob', 'comm_color_code') 
+node_scalar = 13000
+
+# plot without labels 
+fig, ax = plt.subplots(figsize = (8, 8), dpi = 500)
+plt.axis('off')
+nx.draw_networkx_nodes(G, pos, 
+                        nodelist = nodelist_sorted,
+                        node_size = [x*node_scalar for x in nodesize_sorted], 
+                        node_color = community_sorted,
+                        linewidths = 0.5, edgecolors = 'black')
+nx.draw_networkx_edges(G, pos, alpha = 0.7,
+                       width = edgeweight_sorted,
+                       edgelist = edgelist_sorted,
+                       edge_color = 'tab:grey'
+                       )
+plt.savefig('../fig/pdf/landscape_dendrogram.pdf')
+plt.savefig('../fig/svg/landscape_dendrogram.svg')
 
 # main plot (Figure 4A)
-node_scalar = 13000
 fig, ax = plt.subplots(figsize = (8, 8), dpi = 500)
 plt.axis('off')
 
