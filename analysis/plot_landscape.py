@@ -226,7 +226,6 @@ nx.draw_networkx_edges(G, pos, alpha = 0.7,
                        edgelist = edgelist_sorted,
                        edge_color = 'tab:grey'
                        )
-
 # annotations
 for index, row in annotations.iterrows(): 
     node_idx = row['node_id']
@@ -236,14 +235,15 @@ for index, row in annotations.iterrows():
     color_code = row['comm_color_code']
     ax.annotate(name, xy = [pos_x, pos_y],
                 color = color_code,
-                #xycoords = 'figure fraction',
                 xytext=[pos_x+xx, pos_y+yy],
-                #textcoords = 'figure fraction', 
                 arrowprops = dict(arrowstyle="->",
                                   connectionstyle='arc3',
                                   color='black'))
 plt.subplots_adjust(left=0.15, right=0.8, top=1, bottom=0)
-plt.savefig('../fig/landscape_dendrogram.pdf')
+plt.savefig('../fig/pdf/landscape_dendrogram_labels.pdf', bbox_inches = 'tight')
+plt.savefig('../fig/svg/landscape_dendrogram_labels.svg', bbox_inches = 'tight')
+
+#### check the below again ####
 
 # save network information
 network_information.to_csv('../data/analysis/network_information_enriched.csv', index = False)
@@ -256,7 +256,6 @@ recode_comm = {'Group 1': 'Group 1',
                'Group 5': 'Group 3'}
 
 network_information['recode_comm'] = [recode_comm.get(x) for x in network_information['comm_label']]
-
 
 ## test time-periods ##
 network_information

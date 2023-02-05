@@ -1,5 +1,7 @@
 ## Overview
 
+![](fig/svg/landscape_dendrogram_labels.svg)
+
 Code for "Inferring Cultural Landscapes with the Inverse Ising Model" (https://www.mdpi.com/1099-4300/25/2/264) accepted in *Entropy* on the 25th of January 2023.
 We would be very grateful for comments, questions, and thoughts. 
 
@@ -15,8 +17,6 @@ We would be very grateful for comments, questions, and thoughts.
   publisher={MDPI}
 }
 ```
-
-![](fig/svg/landscape_dendrogram.svg)
 
 ## Components
 ### ```/data```
