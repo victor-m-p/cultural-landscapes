@@ -15,7 +15,7 @@ We would be very grateful for comments, questions, and thoughts.
 * ```data/analysis```: files used for the DRH analysis in ```/analysis``` some of them created from ```/preprocessing```. 
 
 Raw data from the DRH (i.e. pre-curation) is not provided given size limits. 
-This might be available upon request. 
+This might be available upon request. Everything after subset curation is provided.
 
 ### ```/fig```
 Figures for "Inferring Cultural Landscapes with the Inverse Ising Model". Currently only the figures for ```5. Results: The Database of Religious History``` (see ```/DRH``` for code). 
@@ -31,6 +31,33 @@ Code to reproduce the analysis and figures related to the ```DRH``` case study. 
 
 ### ```/MPF_CMU``` 
 MPF_CMU contains the optimized C code to implement all of the extensions and modifications to MPF described in our paper. Many of the simulations were carried out on the Bridges2 Pittsburgh Supercomputing Center system, and for speed they are set up to use multiple cores with OpenMP. You will want to adjust the Makefile to compile on your local system. Note that the compiler that ships with the new Mac M1s does not support OpenMP; you will need to install a (non-Apple) clang compiler. For details, see ```MPF_CMU```.
+
+## Getting Started (DRH analysis)
+
+Environments tested on ubuntu version 22.04 LTS. 
+
+### Requirements 
+
+Working installation of ```Python``` (tested with v3.10.6) and ```Julia``` (tested with vXXX).
+
+### Installation
+
+1. Clone the repo (if not already done). Here shown for ```ssh``` but ```https``` also fine:
+    ```sh
+    git clone git@github.com:victor-m-p/humanities-glass.git
+    ```
+
+2. Install the ```Python``` environment (```glassenv```):
+    ```sh
+    bash create_venv.sh
+    bash add_venv.sh
+    ```
+
+3. Install the ```Julia``` environment  
+TODO: figure out how to make Julia environment, and path management in ```Julia```. 
+
+
+
 
 <!-- LICENSE -->
 ## License

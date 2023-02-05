@@ -2,8 +2,6 @@
 ## Overview
 This folder documents the the analysis of DRH data reported in "Inferring Cultural Landscapes with the Inverse Ising Model" (mainly Section 5). Code-base currently being cleaned and made reproducible. 
 
-* Preprocessing of the DRH data. 
-* Data curation for the subset used in the paper. 
 * Table creation. 
 * Figures 3 and 4. 
 
