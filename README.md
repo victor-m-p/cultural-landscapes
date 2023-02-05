@@ -1,14 +1,12 @@
 ## Overview
 
-Pre-review code for "Inferring Cultural Landscapes with the Inverse Ising Model"
+Code for "Inferring Cultural Landscapes with the Inverse Ising Model"
 
 Victor Møller Poulsen and Simon DeDeo
 
-submitted to *Entropy*, 9 December 2022
+submitted to *Entropy*, 9 December 2022, and accepted 25 January 2023: https://www.mdpi.com/1099-4300/25/2/264
 
-This is *pre-review* code, not intended for general public circulation. We would be very grateful for comments, questions, and thoughts.
-
-We are very happy to take requests. Our experience has been that iterating with potential users is the best way to make our code and data clear, reusable, and efficient to use. On re-submission and review, we will release general code, intended for consumer use, and a full guide.
+We would be very grateful for comments, questions, and thoughts.
 
 ## Components
 
@@ -28,48 +26,14 @@ Figures for "Inferring Cultural Landscapes with the Inverse Ising Model". Curren
 ### ```/tables```
 Tables for "Inferring Cultural Landscapes with the Inverse Ising Model". In particular, tables documenting the DRH dataset used in the article. See ```/DRH``` for code. 
 
-### ```/DRH```
-```DRH``` contains the ```Python``` (and ```Julia```) code to reproduce the DRH analysis as presented in "Inferring Cultural Landscapes with the Inverse Ising Model". It contains both the preprocessing, data-curation, creation of tables (for ```/tables```) and creation of figures (for ```/fig```). See ```/DRH``` for more details. 
+### ```/preprocessing```
+Preprocessing and data curation for the DRH (prior to ```analysis```) using ```Python``` and ```Julia```.
+
+### ```/analysis```
+Code to reproduce the analysis and figures related to the ```DRH``` case study. Creates tables (```/tables```) and figures (```/fig```). 
 
 ### ```/MPF_CMU``` 
-
-MPF_CMU contains the optimized C code to implement all of the extensions and modifications to MPF described in our paper. Many of the simulations were carried out on the Bridges2 Pittsburgh Supercomputing Center system, and for speed they are set up to use multiple cores with OpenMP. You will want to adjust the Makefile to compile on your local system. Note that the compiler that ships with the new Mac M1s does not support OpenMP; you will need to install a (non-Apple) clang compiler.
-
-Some of this code is compute intensive; on a Mac M1 with 10 cores, for example, it takes a few seconds to fit n=20 with a few hundred observations, and a few minutes to do the same with Cross Validation.
-
-MPF has seven different modes:
-
-// mpf -l [filename] [logsparsity] [NN] // load in data, fit
-
-Given a data file, a log-sparsity choice, and a specification of \mathcal{N}_i, produces a parameter fit file. e.g.,
-
-./mpf -l test.dat 1.0 1
-
-will fit using a lambda equal to 10^1.0, and the \mathcal{N}_1 strategy.
-
-// mpf -c [filename] [NN] // load in data, fit, using cross-validation to pick best sparsity
-
-The same as above, but does cross-validation to find the best value of lambda.
-
-// mpf -g [filename] [n_nodes] [n_obs] [beta] // generate data, save both parameters and data to files
-
-Generates a simulated dataset, with n_nodes nodes, and n_obs observations, with J and h drawn from a Gaussian with RMS equal to beta.
-
-// mpf -t [filename] [paramfile] [NN] // load in test data, fit, get KL divergence from truth
-
-If you know the true parameters (e.g., because you previously ran mpf -g), this will fit data, and tell you how well you did.
-
-// mpf -o [filename_prefix] [NN] // load in data (_data.dat suffix), find best lambda using _params.dat to determine KL
-
-If you know the true parameters, this will tell you the secret best value of lambda.
-
-// mpf -k [filename] [paramfile_truth] [paramfile_inferred] // load data, compare truth to inferred
-
-If you have previously fit some data, but you also know the true parameters, this will tell you how well you did.
-
-// mpf -z [paramfile] [n_nodes]  // print out probabilities of all configurations under paramfile
-
-If you have a parameter file, this will print out all the configurations, the energy for each config, and the probability.
+MPF_CMU contains the optimized C code to implement all of the extensions and modifications to MPF described in our paper. Many of the simulations were carried out on the Bridges2 Pittsburgh Supercomputing Center system, and for speed they are set up to use multiple cores with OpenMP. You will want to adjust the Makefile to compile on your local system. Note that the compiler that ships with the new Mac M1s does not support OpenMP; you will need to install a (non-Apple) clang compiler. For details, see ```MPF_CMU```.
 
 <!-- LICENSE -->
 ## License
