@@ -7,6 +7,7 @@ Victor Møller Poulsen and Simon DeDeo
 We would be very grateful for comments, questions, and thoughts. 
 
 ## BibTex
+```
 @article{poulsen2023inferring,
   title={Inferring Cultural Landscapes with the Inverse Ising Model},
   author={Poulsen, Victor M{\o}ller and DeDeo, Simon},
@@ -17,6 +18,7 @@ We would be very grateful for comments, questions, and thoughts.
   year={2023},
   publisher={MDPI}
 }
+```
 
 ## Components
 ### ```/data```
