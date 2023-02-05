@@ -1,27 +1,24 @@
 ## Overview
 
-Code for "Inferring Cultural Landscapes with the Inverse Ising Model"
+Code for "Inferring Cultural Landscapes with the Inverse Ising Model" (https://www.mdpi.com/1099-4300/25/2/264) accepted in *Entropy* on the 25th of January 2023.
 
 Victor Møller Poulsen and Simon DeDeo
 
-submitted to *Entropy*, 9 December 2022, and accepted 25 January 2023: https://www.mdpi.com/1099-4300/25/2/264
-
-We would be very grateful for comments, questions, and thoughts.
+We would be very grateful for comments, questions, and thoughts. 
 
 ## Components
 
 ### ```/data```
-* ```data/mdl_final```: processed DRH data (post-MPF).
+* ```data/mdl_experiments```: processed DRH data (post-MPF).
 * ```data/clean```: processed DRH data (pre-MPF).
 * ```data/reference```: reference files (i.e. ensuring links between questions and cultures). 
-* ```data/analysis```: files used for the DRH analysis in ```/DRH```. 
+* ```data/analysis```: files used for the DRH analysis in ```/analysis``` some of them created from ```/preprocessing```. 
 
 Raw data from the DRH (i.e. pre-curation) is not provided given size limits. 
 This might be available upon request. 
 
 ### ```/fig```
 Figures for "Inferring Cultural Landscapes with the Inverse Ising Model". Currently only the figures for ```5. Results: The Database of Religious History``` (see ```/DRH``` for code). 
-
 
 ### ```/tables```
 Tables for "Inferring Cultural Landscapes with the Inverse Ising Model". In particular, tables documenting the DRH dataset used in the article. See ```/DRH``` for code. 
@@ -40,7 +37,6 @@ MPF_CMU contains the optimized C code to implement all of the extensions and mod
 Distributed under the MIT License. See `LICENSE.txt` for more information.
 
 ## Contact
-
 Simon DeDeo (for ```/MPF_CMU``` questions):
 * Twitter: [@LaboratoryMinds](https://twitter.com/LaboratoryMinds)
 * Github: [@simon-dedeo](https://github.com/simon-dedeo)
@@ -60,5 +56,4 @@ We are particularly grateful to the creaters of ```conIII``` and the maintainers
 * [Database of Religious History (DRH)](https://religiondatabase.org/landing/)
 
 ## FUNDING
-
 This work used the Extreme Science and Engineering Discovery Environment (XSEDE), which is supported by National Science Foundation grant number ACI-1548562. Specifically, it used the Bridges-2 system, which is supported by NSF award number ACI-1928147, at the Pittsburgh Supercomputing Center (PSC), under grant HUM220003. This work was supported in part by the Survival and Flourishing Fund.
