@@ -142,7 +142,7 @@ def apply_combinations(best_entries, entry_id_column,
         N (int): number of questions (in our case 20)
 
     Returns:
-        list: list of (nested) tuples entry/question/answer/weight
+        lst: list of (nested) tuples entry/question/answer/weight
     """
     entry_combinations_lst = []
     for entry_id in best_entries[entry_id_column].unique():
@@ -159,7 +159,7 @@ def to_dataframe(weighted_combinations):
     """list of tuple to dataframe
 
     Args:
-        weighted_combinations (list): list of weighted entry/question combinations
+        weighted_combinations (lst): list of weighted entry/question combinations
 
     Returns:
         pd.DataFrame: expanded (matrix-like) dataframe with questions as columns and entry_id, weight

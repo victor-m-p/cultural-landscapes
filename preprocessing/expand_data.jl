@@ -11,9 +11,9 @@ using Printf, Statistics, Distributions, DelimitedFiles, CSV, DataFrames, IterTo
 
 # check up on how to better manage paths in julia
 # currently requires manual tweaking of your path.
-prob_file = "/home/vpoulsen/cultural-landscapes/data/analysis/configuration_probabilities.txt"
-config_file = "/home/vpoulsen/cultural-landscapes/data/analysis/configurations.txt"
-flat_file = "/home/vpoulsen/cultural-landscapes/data/analysis/data_flattened.csv"
+prob_file = "/home/vpoulsen/cultural-landscapes/data/preprocessing/configuration_probabilities.txt"
+config_file = "/home/vpoulsen/cultural-landscapes/data/preprocessing/configurations.txt"
+flat_file = "/home/vpoulsen/cultural-landscapes/data/preprocessing/data_flattened.csv"
 
 # setup
 n_nodes, maxna = 20, 5
@@ -85,5 +85,5 @@ d = DataFrame(
     entry_prob = total_pnorm) # probability of being in this config for the entry id
 
 # save stuff 
-CSV.write("/home/vpoulsen/cultural-landscapes/data/analysis/data_expanded.csv", d)
-writedlm("/home/vpoulsen/cultural-landscapes/data/analysis/matrix_expanded.txt", mat)
+CSV.write("/home/vpoulsen/cultural-landscapes/data/preprocessing/data_expanded.csv", d)
+writedlm("/home/vpoulsen/cultural-landscapes/data/preprocessing/matrix_expanded.txt", mat)

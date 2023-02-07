@@ -35,17 +35,17 @@ def plot_dendrogram(model, **kwargs):
 
 ### preprocessing ###
 # generate all states
-n_nodes, n_top_states = 20, 150  
-from fun import bin_states, top_n_idx
-allstates = bin_states(n_nodes) 
+configurations = np.loadtxt('../data/preprocessing/configurations.txt', dtype = int)
+n_top_states = 150  
+from fun import top_n_idx
 
 # find the top 150 states 
-config_prob = np.loadtxt('../data/analysis/configuration_probabilities.txt')
+config_prob = np.loadtxt('../data/preprocessing/configuration_probabilities.txt')
 top_config_info = top_n_idx(n_top_states, config_prob, 'config_id', 'config_prob') 
 configuration_ids = top_config_info['config_id'].tolist()
 
 # take out top states
-top_configurations = allstates[configuration_ids]
+top_configurations = configurations[configuration_ids]
 
 ### clustering ###
 # setting distance_threshold = 0 ensures we compute the full tree.

@@ -1,3 +1,8 @@
+'''
+Overview over differences between communities.
+Not really used currently and should be refactored. 
+'''
+
 import numpy as np 
 import pandas as pd 
 import configuration as cn 
@@ -55,19 +60,16 @@ def subset_groups(df, sub_list, remap_dict):
     df['clade_label'] = [remap_dict.get(x) for x in df['comm_label']]
     return df
 
-question_reference = pd.read_csv('../data/analysis/question_reference.csv')
+question_reference = pd.read_csv('../data/preprocessing/question_reference.csv')
 
-# preprocessing 
-## from "plot_landscape_dendrogram.py"
+# preprocessing (from plot_landscape_dendrogram.py)
 network_information = pd.read_csv('../data/analysis/network_information_enriched.csv')
 network_information = network_information[['config_id', 'config_prob', 'node_id', 'comm_label']]
 network_information = network_information.sort_values('node_id').reset_index(drop = True)
 
-# preprocessing 
-from fun import bin_states 
-configuration_probabilities = np.loadtxt('../data/analysis/configuration_probabilities.txt')
-n_nodes = 20
-configurations = bin_states(n_nodes) 
+# configurations, configuration probabilities
+configuration_probabilities = np.loadtxt('../data/preprocessing/configuration_probabilities.txt')
+configurations = np.loadtxt('../data/preprocessing/configurations.txt', dtype = int)
 
 ## split tables ##
 # first split 

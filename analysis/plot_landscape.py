@@ -58,7 +58,7 @@ outliers = outliers[['config_id', 'config_prob', 'comm_label']]
 
 ## all configs to label
 label_configs = pd.concat([top, outliers], axis = 0)
-maxlik = pd.read_csv('../data/analysis/entry_maxlikelihood.csv')
+maxlik = pd.read_csv('../data/preprocessing/entry_maxlikelihood.csv')
 maxlik = maxlik[['config_id', 'entry_name']]
 label_configs = maxlik.merge(label_configs, on = 'config_id', how = 'inner')
 label_configs = label_configs.sort_values(['comm_label', 'config_prob'],
@@ -79,7 +79,7 @@ transl_dict = {
     1017734: 'Yiguan Dao', 
     # community 2
     361984: 'Messalians',
-    362368: 'Free Methodist', # still maxlik 
+    362368: 'Free Methodist', 
     362374: "Jehovah's Witnesses",
     362370: 'Southern Baptists',
     362246: 'Valentinians',
@@ -115,7 +115,7 @@ annotations.sort_values(['comm_color_code', 'node_id'])
 
 ## now nudge the position of labels 
 pos_annot = {
-    # 
+    # first community 
     3: (-700, 0), # Jehovah
     16: (-750, 0), # Free Methodist
     35: (-650, 20), # Southern Baptists
@@ -176,24 +176,9 @@ for idx, val in network_information_dict.items():
 ## check up on this (i.e. can we avoid imports here and make it easy?)
 from fun import * 
 G = edge_strength(G, 'config_prob') # would be nice to get rid of this. 
-edgelist_sorted, edgeweight_sorted = edge_information(G, 'pmass_mult', 'hamming', 34000)
-
-## thing here is that we need to sort the node information similarly
-def node_attributes(Graph, sorting_attribute, value_attribute):
-    # first sort by some value (here config_prob)
-    sorting_attr = nx.get_node_attributes(G, sorting_attribute)
-    sorting_attr = {k: v for k, v in sorted(sorting_attr.items(), key = lambda item: item[1])}
-    nodelist_sorted = list(sorting_attr.keys())
-    # then take out another thing 
-    value_attr = nx.get_node_attributes(G, value_attribute)
-    value_attr = {k: v for k, v in sorted(value_attr.items(), key = lambda pair: nodelist_sorted.index(pair[0]))}
-    value_sorted = list(value_attr.values())
-    # return
-    return nodelist_sorted, value_sorted
-
-# get node attributes
-nodelist_sorted, nodesize_sorted = node_attributes(G, 'config_prob', 'config_prob')
-_, community_sorted = node_attributes(G, 'config_prob', 'comm_color_code') 
+edgelist_sorted, edgeweight_sorted = sort_edge_attributes(G, 'pmass_mult', 'hamming', 34000)
+nodelist_sorted, nodesize_sorted = sort_node_attributes(G, 'config_prob', 'config_prob')
+_, community_sorted = sort_node_attributes(G, 'config_prob', 'comm_color_code') 
 node_scalar = 13000
 
 # plot without labels 
@@ -245,9 +230,6 @@ plt.savefig('../fig/svg/landscape_dendrogram_labels.svg', bbox_inches = 'tight')
 
 #### check the below again ####
 
-# save network information
-network_information.to_csv('../data/analysis/network_information_enriched.csv', index = False)
-
 # table 4
 recode_comm = {'Group 1': 'Group 1',
                'Group 2': 'Group 2',
@@ -257,11 +239,9 @@ recode_comm = {'Group 1': 'Group 1',
 
 network_information['recode_comm'] = [recode_comm.get(x) for x in network_information['comm_label']]
 
-## test time-periods ##
-network_information
 
 data_raw = pd.read_csv('../data/raw/drh_20221019.csv')
-entry_reference = pd.read_csv('../data/analysis/entry_reference.csv')
+entry_reference = pd.read_csv('../data/preprocessing/entry_reference.csv')
 
 # for each entry id, get 
 data_year = data_raw[['entry_id', 'start_year', 'end_year']]
@@ -310,7 +290,7 @@ config_entry_comm = config_entry_overlap.groupby(['comm_label', 'entry_id', 'nod
 ## for a specific entry_id, then take first
 config_entry_comm = config_entry_comm.sort_values('entry_prob', ascending=False).groupby('entry_id').head(1)
 ## add back name and get the DRH id 
-entry_reference = pd.read_csv('../data/analysis/entry_reference.csv')
+entry_reference = pd.read_csv('../data/preprocessing/entry_reference.csv')
 config_entry_comm = config_entry_comm.merge(entry_reference, on = 'entry_id', how = 'inner')
 ## select columns 
 config_entry_comm = config_entry_comm[['comm_label', 'node_id', 'entry_id', 'entry_name', 'entry_prob']]

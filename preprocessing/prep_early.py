@@ -48,7 +48,7 @@ question_reference['question_id'] = question_reference.index + 1
 
 ## re-order columns and save 
 question_reference = question_reference[['question_id', 'question_id_drh', 'question', 'question_drh']]
-question_reference.to_csv('../data/analysis/question_reference.csv', index = False)
+question_reference.to_csv('../data/preprocessing/question_reference.csv', index = False)
 
 ## save as latex 
 question_latex = question_reference.style.hide(axis='index').to_latex()
@@ -57,7 +57,7 @@ with open('../tables/question_table.txt', 'w') as f:
 
 # move entry_reference to a new location
 entry_reference = pd.read_csv(f'../data/reference/entry_reference_questions_{n_nodes}_maxna_{n_nan}_nrows_{n_rows}_entries_{n_entries}.csv')
-entry_reference.to_csv('../data/analysis/entry_reference.csv', index = False)
+entry_reference.to_csv('../data/preprocessing/entry_reference.csv', index = False)
 
 ## save as latex 
 entry_latex = entry_reference.style.hide(axis='index').to_latex()
@@ -70,7 +70,7 @@ with open('../tables/entry_table.txt', 'w') as f:
 direct_reference = pd.read_csv(f'../data/reference/direct_reference_questions_{n_nodes}_maxna_{n_nan}_nrows_{n_rows}_entries_{n_entries}.csv')
 question_columns = direct_reference.columns[1:-1]
 direct_flattened = direct_reference.groupby('entry_id')[question_columns].mean().reset_index().astype(int) # mean(1, -1) = 0
-direct_flattened.to_csv('../data/analysis/data_flattened.csv', index = False)
+direct_flattened.to_csv('../data/preprocessing/data_flattened.csv', index = False)
 
 # calculate probability of all configurations based on parameters h, J.
 params = np.loadtxt(f'../data/mdl_experiments/matrix_questions_{n_nodes}_maxna_{n_nan}_nrows_{n_rows}_entries_{n_entries}.txt.mpf_params.dat')
@@ -78,8 +78,8 @@ nJ = int(n_nodes*(n_nodes-1)/2)
 J = params[:nJ]
 h = params[nJ:]
 p = p_dist(h, J) # takes a minute (and a lot of memory). 
-np.savetxt(f'../data/analysis/configuration_probabilities.txt', p)
+np.savetxt(f'../data/preprocessing/configuration_probabilities.txt', p)
 
 # all configurations file allstates 
 allstates = bin_states(n_nodes) # takes a minute (do not attempt with n_nodes > 20)
-np.savetxt(f'../data/analysis/configurations.txt', allstates.astype(int), fmt='%i')
+np.savetxt(f'../data/preprocessing/configurations.txt', allstates.astype(int), fmt='%i')
