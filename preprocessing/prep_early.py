@@ -54,11 +54,6 @@ question_reference.to_csv('../data/preprocessing/question_reference.csv', index 
 entry_reference = pd.read_csv(f'../data/reference/entry_reference_questions_{n_nodes}_maxna_{n_nan}_nrows_{n_rows}_entries_{n_entries}.csv')
 entry_reference.to_csv('../data/preprocessing/entry_reference.csv', index = False)
 
-## save as latex 
-entry_latex = entry_reference.style.hide(axis='index').to_latex()
-with open('../tables/entry_table.txt', 'w') as f: 
-    f.write(entry_latex)
-
 # create dataframe where (1, -1) - i.e. inconsistent answers - is coded as 0 
 # this is just to make it easier to expand all of the possible configurations for an entry. 
 # i.e. in this case it is the same whether it is (1, -1) or 0. 

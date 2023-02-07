@@ -3,7 +3,7 @@
 ![](fig/svg/landscape_dendrogram_labels.svg)
 
 Code for "Inferring Cultural Landscapes with the Inverse Ising Model" (https://www.mdpi.com/1099-4300/25/2/264) accepted in *Entropy* on the 25th of January 2023.
-We would be very grateful for comments, questions, and thoughts. 
+We would be very grateful for comments, questions, and thoughts. Parts of the analysis are easily reproducible, but a full reproduction is currently not possible since the raw dataset exceeds GitHub size limits. If a full reproduction is desired, please contact the authors. 
 
 ```
 @article{poulsen2023inferring,
@@ -24,22 +24,24 @@ We would be very grateful for comments, questions, and thoughts.
 * ```data/clean```: processed DRH data (pre-MPF).
 * ```data/reference```: reference files (i.e. ensuring links between questions and cultures). 
 * ```data/preprocessing```: files created from ```/preprocessing``` (used in ```/analysis```)
-* ```data/analysis```: files created from ```/analysis```
+* ```data/analysis```: files created from ```/analysis```. 
 
 Raw data from the DRH (i.e. pre-curation) is not provided given size limits. 
 This might be available upon request. Everything after subset curation is provided.
 
 ### ```/fig```
-Figures for "Inferring Cultural Landscapes with the Inverse Ising Model". Currently only the figures for ```5. Results: The Database of Religious History``` (see ```/DRH``` for code). 
+Figures for "Inferring Cultural Landscapes with the Inverse Ising Model" (```5. Results: The Database of Religious History```)
 
 ### ```/tables```
-Tables for "Inferring Cultural Landscapes with the Inverse Ising Model". In particular, tables documenting the DRH dataset used in the article. See ```/DRH``` for code. 
+Tables for "Inferring Cultural Landscapes with the Inverse Ising Model". (```5. Results: The Database of Religious History```)
 
 ### ```/preprocessing```
-Preprocessing and data curation for the DRH (prior to ```analysis```) using ```Python``` and ```Julia```.
+Preprocessing and data curation for the DRH (prior to ```/analysis```). Relies on ```Python``` and ```Julia```.
+Some of the preprocessing (e.g. ```/preprocessing/preprocessing.py``` and ```/preprocessing/curation.py```) happens prior to the inference step, while the rest happens after. The raw data is not included here since it exceeds GitHub size limits, but the analysis can be reproduced from the inference step. For more, see the ```README``` in ```/preprocessing```.
 
 ### ```/analysis```
-Code to reproduce the analysis and figures related to the ```DRH``` case study. Creates tables (```/tables```) and figures (```/fig```). 
+Code to reproduce the analysis, figures (```/fig```), and tables (```/tables```) related to the ```DRH``` case study. 
+Where natural, one script reproduces a particular figure or table (e.g. ```/analysis/fig_3_parameters.py``` creates the two figures that make up *Figure 3* in the article). Some interdependencies between documents exist, e.g. ```/analysis/fig_4_landscape.py``` relies on ```/analysis/prep_fig_4_landscape.py``` and ```/analysis/fig_A1_dendrogram.py```. For more, see the ```README``` in ```/analysis```.
 
 ### ```/MPF_CMU``` 
 MPF_CMU contains the optimized C code to implement all of the extensions and modifications to MPF described in our paper. Many of the simulations were carried out on the Bridges2 Pittsburgh Supercomputing Center system, and for speed they are set up to use multiple cores with OpenMP. You will want to adjust the Makefile to compile on your local system. Note that the compiler that ships with the new Mac M1s does not support OpenMP; you will need to install a (non-Apple) clang compiler. For details, see ```MPF_CMU```.
@@ -50,7 +52,7 @@ Environments tested on ubuntu version 22.04 LTS.
 
 ### Requirements 
 
-Working installation of ```Python``` (tested with v3.10.6) and ```Julia``` (tested with vXXX).
+Working installation of ```Python``` (tested with v3.10.6) and ```Julia``` (tested with v1.8.5).
 
 ### Installation
 
@@ -65,11 +67,7 @@ Working installation of ```Python``` (tested with v3.10.6) and ```Julia``` (test
     bash add_venv.sh
     ```
 
-3. Install the ```Julia``` environment  
-TODO: figure out how to make Julia environment, and path management in ```Julia```. 
-
-
-
+3. Install the ```Julia``` packages used in the script (only ```/preprocessing/expand_data.jl```) with the Julia REPL.
 
 <!-- LICENSE -->
 ## License
@@ -85,7 +83,6 @@ Victor Poulsen (for other questions):
 * Twitter: [@vic_moeller](https://twitter.com/vic_moeller) 
 * GitHub: [@victor-m-p](https://github.com/victor-m-p)
 * Mail: victormoeller@gmail.com
-
 
 <!-- ACKNOWLEDGMENTS -->
 ## Acknowledgments
