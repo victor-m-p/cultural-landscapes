@@ -23,7 +23,8 @@ We would be very grateful for comments, questions, and thoughts.
 * ```data/mdl_experiments```: processed DRH data (post-MPF).
 * ```data/clean```: processed DRH data (pre-MPF).
 * ```data/reference```: reference files (i.e. ensuring links between questions and cultures). 
-* ```data/analysis```: files used for the DRH analysis in ```/analysis``` some of them created from ```/preprocessing```. 
+* ```data/preprocessing```: files created from ```/preprocessing``` (used in ```/analysis```)
+* ```data/analysis```: files created from ```/analysis```
 
 Raw data from the DRH (i.e. pre-curation) is not provided given size limits. 
 This might be available upon request. Everything after subset curation is provided.
