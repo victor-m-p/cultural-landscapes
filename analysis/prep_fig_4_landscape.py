@@ -1,8 +1,7 @@
 '''
 VMP 2022-12-16: 
-Prepare visualization of top configurations (n = 150) for figure 4A.
-The information is used in "plot_landscape.py". 
-(NB: DO WE EVEN USE THIS?)
+Prepare visualization of top configurations (n = 150) for figure 4(A).
+The information is used in "fig_4_landscape.py". 
 '''
 
 import matplotlib.pyplot as plt 
@@ -44,7 +43,7 @@ maxlikelihood_datastate = maxlikelihood_datastate.merge(datastate_entry_weight, 
 maxlikelihood_sample = (maxlikelihood_datastate
                         .groupby('node_id')
                         .apply(lambda x: x.sample(n=1, random_state=421))
-                        .reset_index(drop=True))
+                        .reset_index(drop=True)).drop(columns='config_prob')
 network_information = (top_config_info
                        .merge(maxlikelihood_sample,
                                on=['node_id', 'config_id'],

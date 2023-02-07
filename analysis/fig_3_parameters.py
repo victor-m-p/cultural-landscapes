@@ -126,14 +126,14 @@ plt.savefig('../fig/svg/parameters.svg', bbox_inches = 'tight')
 
 # do it for correlations and means 
 ## only full records 
-data_config_master = pd.read_csv('../data/analysis/entry_configuration_master.csv')
+data_config_master = pd.read_csv('../data/preprocessing/entry_configuration_master.csv')
 data_clean = data_config_master[data_config_master['entry_prob'] > 0.9999] # only complete records
 ## find the configs 
 allstates = bin_states(n_nodes) 
 clean_configs = data_clean['config_id'].tolist()
 mat_configs = allstates[clean_configs]
 ## to dataframe 
-question_reference = pd.read_csv('../data/analysis/question_reference.csv')
+question_reference = pd.read_csv('../data/preprocessing/question_reference.csv')
 question_reference['question_id'] = question_reference.index + 1 # should be done earlier
 question_ids = question_reference['question_id'].to_list() 
 df_configs = pd.DataFrame(mat_configs, columns = question_ids)

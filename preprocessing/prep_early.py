@@ -50,11 +50,6 @@ question_reference['question_id'] = question_reference.index + 1
 question_reference = question_reference[['question_id', 'question_id_drh', 'question', 'question_drh']]
 question_reference.to_csv('../data/preprocessing/question_reference.csv', index = False)
 
-## save as latex 
-question_latex = question_reference.style.hide(axis='index').to_latex()
-with open('../tables/question_table.txt', 'w') as f: 
-    f.write(question_latex)
-
 # move entry_reference to a new location
 entry_reference = pd.read_csv(f'../data/reference/entry_reference_questions_{n_nodes}_maxna_{n_nan}_nrows_{n_rows}_entries_{n_entries}.csv')
 entry_reference.to_csv('../data/preprocessing/entry_reference.csv', index = False)

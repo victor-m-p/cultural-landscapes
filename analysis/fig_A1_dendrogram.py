@@ -33,8 +33,7 @@ def plot_dendrogram(model, **kwargs):
 
     return dendrogram(linkage_matrix, **kwargs)
 
-### preprocessing ###
-# generate all states
+# load configurations 
 configurations = np.loadtxt('../data/preprocessing/configurations.txt', dtype = int)
 n_top_states = 150  
 from fun import top_n_idx

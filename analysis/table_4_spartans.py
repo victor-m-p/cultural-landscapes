@@ -1,4 +1,5 @@
 '''
+This script produces table 4.
 Implied probability for different possible Spartan Imperial Cult configurations.
 '''
 import configuration as cn 

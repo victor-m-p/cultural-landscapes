@@ -17,7 +17,7 @@ configuration_probabilities = np.loadtxt(f'../data/preprocessing/configuration_p
 entry_config_master = pd.read_csv(f'../data/preprocessing/entry_configuration_master.csv')
 entry_reference = pd.read_csv(f'../data/preprocessing/entry_reference.csv')
 question_reference = pd.read_csv('../data/preprocessing/question_reference.csv')
-network_information = pd.read_csv('../data/analysis/network_information_enriched.csv')
+network_information = pd.read_csv('../data/analysis/network_information.csv')
 configurations = np.loadtxt('../data/preprocessing/configurations.txt', dtype = int)
 
 # Free Methodist Church

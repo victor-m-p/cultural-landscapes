@@ -1,14 +1,18 @@
 
 <!-- ABOUT THE PROJECT -->
 ## Files
-* ```configuration.jl``` and ```configuration.py``` are convenience classes.
-* ```fun.py``` contains convenience functions.
-* ```plot_parameters.py``` creates Figure 3A and figure 3B.  
-* ```dendrogram.py``` creates Figure A1 (appendix) and prepares ```plot_landscape```.
-* ```plot_landscape.py``` creates Figure 4A and several tables (relies on ```prep_landscape.py```). 
-* ```seed_methodist.py``` creates Figure 4B.
-* ```seed_roman.py``` creates figure 4C.
-* ```community_tables.py``` creates tables.
+* ```configuration.py``` is a convenience class for working with configurations. 
+* ```fun.py``` contains convenience functions used in both ```/preprocessing``` and ```/analysis```.
+* ```fig_3_parameters.py``` creates Figure 3A and figure 3B (put together in ```inkscape```)
+* ```fig_A1_dendrogram.py``` creates Figure A1 (appendix) and prepares ```fig_4_landscape.py```.
+* ```fig_4_landscape.py``` creates Figure 4A (relies on ```prep_landscape.py```). 
+* ```fig_4_methodist.py``` creates Figure 4B.
+* ```fig_4_roman.py``` creates Figure 4C.
+* ```table_A1_questions.py``` creates Table A1.
+* ```table_A2_clades.py``` creates Table A2.
+* ```table_A3_and_A4_entries.py``` creates Tables A3, A4.
+* ```table_A5_annotations.py``` creates Table A5 (although slightly different).
+* ```table_community_weight.py``` creates table of community weight (numbers, not table used in article)
 
 ## Contact
 Victor M. Poulsen 
