@@ -1,5 +1,5 @@
 #=
-vpoulsen 2022-12-12:
+vpoulsen 2023-02-08: refactored and re-run
 For each entry_id (religious culture) find all possible configurations.
 I.e. if there are inconsistencies or NAN then expand to all possible. 
 Then assign probabilities to each of these possible configurations. 
@@ -9,19 +9,19 @@ Then assign probabilities to each of these possible configurations.
 # install these packages into environment (e.g. enter Pkg REPL and use 'add [PKG]').
 using Printf, Statistics, Distributions, DelimitedFiles, CSV, DataFrames, IterTools
 
-# check up on how to better manage paths in julia
-# currently requires manual tweaking of your path.
-prob_file = "/home/vpoulsen/cultural-landscapes/data/preprocessing/configuration_probabilities.txt"
-config_file = "/home/vpoulsen/cultural-landscapes/data/preprocessing/configurations.txt"
-flat_file = "/home/vpoulsen/cultural-landscapes/data/preprocessing/data_flattened.csv"
+# loads 
+dir = @__DIR__
+path_configuration_probabilities = replace(dir, "preprocessing" => "data/preprocessing/configuration_probabilities.txt")
+path_configurations = replace(dir, "preprocessing" => "data/preprocessing/configurations.txt")
+path_flattened = replace(dir, "preprocessing" => "data/preprocessing/data_flattened.csv")
 
 # setup
 n_nodes, maxna = 20, 5
 
 # read stuff
-p = readdlm(prob_file) 
-configurations = readdlm(config_file)
-data_flattened = DataFrame(CSV.File(flat_file))
+p = readdlm(path_configuration_probabilities) 
+configurations = readdlm(path_configurations)
+data_flattened = DataFrame(CSV.File(path_flattened))
 mat_flattened = Matrix(data_flattened)
 
 # quick functions
@@ -85,5 +85,7 @@ d = DataFrame(
     entry_prob = total_pnorm) # probability of being in this config for the entry id
 
 # save stuff 
-CSV.write("/home/vpoulsen/cultural-landscapes/data/preprocessing/data_expanded.csv", d)
-writedlm("/home/vpoulsen/cultural-landscapes/data/preprocessing/matrix_expanded.txt", mat)
+outfile_csv = replace(dir, "preprocessing" => "data/preprocessing/data_expanded_2.csv")
+outfile_txt = replace(dir, "preprocessing" => "data/preprocessing/matrix_expanded.txt")
+CSV.write(outfile_csv, d)
+writedlm(outfile_txt, mat)

@@ -15,6 +15,12 @@ class Configuration:
         return "".join([str(x) if x == 1 else str(0) for x in self.configuration])
 
     @staticmethod
+    def normalize(array): 
+        array = array / array.min()
+        array = array / array.sum()
+        return array 
+
+    @staticmethod
     def flip(x): 
         return -1 if x == 1 else 1 
     
