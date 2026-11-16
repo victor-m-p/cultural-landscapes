@@ -423,36 +423,34 @@ optimiser stopped and should be read as "very large".
 9.6%/−51%, 0.1%/−65%.) Re-weighting removes most of the bias in every regime; in the two strongest regimes
 a positive bias remains after correction (mean log bias +0.14 ± 0.06 and +0.07 ± 0.11).
 
-**Table 3** (missing data; exact sampling; λ by cross-validation; 16 landscapes per regime unless a number
-is given in brackets):
+**Table 3** (missing data; exact sampling; λ by cross-validation; 16 landscapes per regime):
 
 | regime | 128 full | published Partial-MPF | marginal | frozen | naive imputation | 256 full |
 |---|---|---|---|---|---|---|
 | dispersed | 0.274 ± 0.050 | 0.214 ± 0.037 | 0.213 ± 0.037 | 0.212 ± 0.037 | 0.289 ± 0.041 | 0.191 ± 0.033 |
 | ordered | 0.570 ± 0.019 | 0.394 ± 0.011 | 0.392 ± 0.010 | 0.391 ± 0.010 | 0.574 ± 0.022 | 0.341 ± 0.009 |
 | near-critical | 0.670 ± 0.047 | 0.460 ± 0.025 | 0.471 ± 0.026 | 0.477 ± 0.027 | 0.837 ± 0.074 | 0.426 ± 0.024 |
-| critical | 0.732 ± 0.133 | 0.461 ± 0.097 | 0.471 ± 0.084 | 0.550 ± 0.103 (14) | 0.984 ± 0.191 | 0.491 ± 0.090 |
+| critical | 0.732 ± 0.133 | 0.461 ± 0.097 | 0.471 ± 0.084 | 0.515 ± 0.093 | 0.984 ± 0.191 | 0.491 ± 0.090 |
 
 Paired differences on the same landscapes:
 
 | | dispersed | ordered | near-critical | critical |
 |---|---|---|---|---|
 | marginal − published | −0.001 ± 0.001 | −0.001 ± 0.002 | +0.010 ± 0.004 | +0.011 ± 0.030 |
-| frozen − published | −0.001 ± 0.001 | −0.002 ± 0.002 | +0.017 ± 0.004 | +0.041 ± 0.017 |
+| frozen − published | −0.001 ± 0.001 | −0.002 ± 0.002 | +0.017 ± 0.004 | +0.054 ± 0.018 |
 | published − 128 full | −0.060 ± 0.013 | −0.176 ± 0.013 | −0.210 ± 0.025 | −0.272 ± 0.073 |
 | published − 256 full | +0.023 ± 0.006 | +0.052 ± 0.007 | +0.035 ± 0.009 | −0.030 ± 0.043 |
 | naive − 128 full | +0.015 ± 0.011 | +0.004 ± 0.023 | +0.167 ± 0.050 | +0.252 ± 0.112 |
 
-(The critical-regime mean for the frozen-weight column is over 14 of the 16 landscapes, so compare it
-through the paired differences, not across the row. The other two had not finished after seven hours each:
-they are landscapes on which almost every cross-validation fit at small λ fails to converge, and the
+(Three of the critical-regime frozen-weight searches took about seven hours each, against a median of 38
+minutes: on those landscapes almost every cross-validation fit at small λ fails to converge, and the
 frozen-weight loop then runs to its iteration limit in every fold.)
 
 Partial data beat 128 complete rows in 60 of 64 landscapes with the published objective. Naive imputation
 is worse than Partial-MPF in 62 of 64 landscapes, and worse than not using the partial rows at all in the
 two strongest regimes. The three ways of treating the partial rows are indistinguishable in the two weakly
 coupled regimes; when couplings are strong the published objective is best and the frozen-weight iteration
-worst, by 0.01–0.04, as at oracle λ (Section 3). At least one cross-validation fold failed to converge at some λ tried in about
+worst, by 0.01–0.05, as at oracle λ (Section 3). At least one cross-validation fold failed to converge at some λ tried in about
 a fifth of the searches in the dispersed regime, almost none in the ordered, two fifths in the near-critical and
 seven tenths in the critical regime; these are counted in the result files.
 
