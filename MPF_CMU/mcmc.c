@@ -1,302 +1,282 @@
+// Exact enumeration (partition function, KL divergence, probabilities of all states), exact sampling,
+// and the single-spin-flip Monte Carlo sampler.
 #include "mpf.h"
-#include "stdlib.h"
-#define flip(X)  ((X) < 0 ? 1 : -1)
-#define flip(X)  ((X) < 0 ? 1 : -1)
-#define VAL(a, pos) ((a & (1 << pos)) ? 1.0 : -1.0)
 
-void mcmc_sampler(unsigned long int *config, int iter, all *data) {
-	int i, j, pos, count;
-	double running, exp_running, rnd, scale;
-		
-	// quick simulated annealing...
-	for(i=0;i<data->n*iter/2;i++) {
-		scale=i*1.0/(data->n*iter/2);
-		pos=(int)gsl_rng_uniform_int(data->r, data->n); // pick a point randomly
-		
-		running=0;
-		// change in energy function from the proposed flip
-		for(j=0;j<data->n;j++) {
-			if (pos != j) {
-				running -= (VAL((*config),pos) - VAL(((*config) ^ (1 << pos)),pos))*VAL((*config),j)*data->big_list[data->ij[pos][j]]*scale;
-			}
-		}
-		running -= (VAL((*config),pos) - VAL(((*config) ^ (1 << pos)),pos))*data->big_list[data->h_offset+pos]*scale;
-				
-		exp_running=exp(running);
-		rnd=gsl_rng_uniform(data->r);
-		if (rnd < exp_running/(1+exp_running)) {
-			(*config) = ((*config) ^ (1 << pos));
-		}
+static void unpack(int n, const double *theta, double *J) {
+	int k, l, cnt=0;
+	for(k=0;k<n;k++) {
+		J[k*n+k]=0;
+		for(l=k+1;l<n;l++) { J[k*n+l]=theta[cnt]; J[l*n+k]=theta[cnt]; cnt++; }
 	}
-
-	// quick simulated annealing...
-	for(i=0;i<data->n*iter/2;i++) {
-		pos=(int)gsl_rng_uniform_int(data->r, data->n); // pick a point randomly
-		
-		running=0;
-		// change in energy function from the proposed flip
-		for(j=0;j<data->n;j++) {
-			if (pos != j) {
-				running -= (VAL((*config),pos) - VAL(((*config) ^ (1 << pos)),pos))*VAL((*config),j)*data->big_list[data->ij[pos][j]];
-			}
-		}
-		running -= (VAL((*config),pos) - VAL(((*config) ^ (1 << pos)),pos))*data->big_list[data->h_offset+pos];
-				
-		exp_running=exp(running);
-		rnd=gsl_rng_uniform(data->r);
-		if (rnd < exp_running/(1+exp_running)) {
-			(*config) = ((*config) ^ (1 << pos));
-		}
-	}
-	
 }
 
-double log_l_parallel(all *data, unsigned long int config, double *inferred, int do_approx) {
-	int i, n, ip, jp, sig_ip, sig_jp, hits, count=0, mc_iter=1000000;
-	double z_inferred=0;
-	double e_inferred, e_loc;
-	unsigned long int config_sample;
-	double t0;
+// H for a fully-specified row
+double h_value(int n, const double *theta, const int8_t *v) {
+	int k, l, cnt=0;
+	double H=0, sk;
+	for(k=0;k<n;k++) {
+		sk=(v[k] > 0) ? 1.0 : -1.0;
+		for(l=k+1;l<n;l++) { H += sk*((v[l] > 0) ? 1.0 : -1.0)*theta[cnt]; cnt++; }
+		H += sk*theta[n*(n-1)/2+k];
+	}
+	return H;
+}
 
-	n=data->n;
+// log pseudo-likelihood of a fully-specified row: sum_k log p(s_k | all other nodes)
+double pseudo_loglik(int n, const double *theta, const int8_t *v) {
+	int k, l;
+	double *J=(double *)xmalloc((size_t)n*n*sizeof(double)), phi, x, total=0;
+	const double *h=theta+n*(n-1)/2;
+	unpack(n, theta, J);
+	for(k=0;k<n;k++) {
+		phi=h[k];
+		for(l=0;l<n;l++) phi += J[k*n+l]*((v[l] > 0) ? 1.0 : -1.0);
+		x=2*((v[k] > 0) ? 1.0 : -1.0)*phi;
+		total += (x > 0) ? -log1p(exp(-x)) : x-log1p(exp(x));
+	}
+	free(J);
+	return total;
+}
 
-	if (do_approx == 0) {
-		t0=clock();
-		
-		for(i=0;i<(1 << n);i++) {
-		
-			e_inferred=0;
-			count=0;
-			for(ip=0;ip<n;ip++) {
-				e_inferred += VAL(i, ip)*inferred[data->h_offset+ip];
-				for(jp=(ip+1);jp<n;jp++) {
-					e_inferred += VAL(i, ip)*VAL(i, jp)*inferred[count]; // data->ij[ip][jp] -- for super-speed, we'll live on the edge
-					count++;
-				}
+// Streaming log-sum-exp accumulator: value = sum * exp(top). Keeps exp() in range whatever the
+// size of the parameters.
+typedef struct { double top, sum, acc; } lse;
+
+static inline void lse_add(lse *a, double H, double payload) {
+	double e;
+	if (H > a->top) {
+		e=exp(a->top-H);
+		a->sum=a->sum*e+1.0;
+		a->acc=a->acc*e+payload;
+		a->top=H;
+	} else {
+		e=exp(H-a->top);
+		a->sum += e;
+		a->acc += e*payload;
+	}
+}
+
+static void lse_merge(lse *a, const lse *b) {
+	double e;
+	if (b->sum == 0) return;
+	if (b->top > a->top) {
+		e=exp(a->top-b->top);
+		a->sum=a->sum*e+b->sum;
+		a->acc=a->acc*e+b->acc;
+		a->top=b->top;
+	} else {
+		e=exp(b->top-a->top);
+		a->sum += e*b->sum;
+		a->acc += e*b->acc;
+	}
+}
+
+// Enumerate all 2^n states in Gray-code order (one spin flip, O(n) work, per state).
+// Returns log Z for theta. If theta2 != NULL also returns log Z for theta2 and the mean of (H - H2)
+// under the distribution defined by theta. The top bits are split across threads.
+static void enumerate(int n, const double *theta, const double *theta2, double *logz, double *logz2, double *mean_diff) {
+	int tbits, n_low, chunk, n_chunks;
+	double *J, *J2=NULL;
+	const double *h=theta+n*(n-1)/2, *h2=theta2 ? theta2+n*(n-1)/2 : NULL;
+	lse tot1={-INFINITY, 0, 0}, tot2={-INFINITY, 0, 0}, *part1, *part2;
+
+	if (n > ENUM_MAX_N) die("cannot enumerate 2^%d states (limit is n = %d)", n, ENUM_MAX_N);
+	J=(double *)xmalloc((size_t)n*n*sizeof(double));
+	unpack(n, theta, J);
+	if (theta2) { J2=(double *)xmalloc((size_t)n*n*sizeof(double)); unpack(n, theta2, J2); }
+
+	tbits=(n > 12) ? 6 : 0;
+	n_low=n-tbits;
+	n_chunks=1 << tbits;
+	part1=(lse *)xmalloc(n_chunks*sizeof(lse)); // per-chunk results, merged in order so that the answer
+	part2=(lse *)xmalloc(n_chunks*sizeof(lse)); // does not depend on the number of threads
+
+#pragma omp parallel if(n >= 20)
+	{
+		double *s=(double *)xmalloc(n*sizeof(double)), *phi=(double *)xmalloc(n*sizeof(double)), *phi2=(double *)xmalloc(n*sizeof(double));
+		lse loc1, loc2;
+		int k, l, b;
+		uint64_t i, N=(uint64_t)1 << n_low;
+		double H, H2;
+
+#pragma omp for schedule(static) nowait
+		for(chunk=0;chunk<n_chunks;chunk++) {
+			loc1.top=-INFINITY; loc1.sum=0; loc1.acc=0; loc2=loc1;
+			for(k=0;k<n_low;k++) s[k]=-1.0;
+			for(k=0;k<tbits;k++) s[n_low+k]=((chunk >> k) & 1) ? 1.0 : -1.0;
+			H=0; H2=0;
+			for(k=0;k<n;k++) {
+				phi[k]=h[k];
+				for(l=0;l<n;l++) phi[k] += J[k*n+l]*s[l];
+				H += 0.5*s[k]*(phi[k]+h[k]);
 			}
-			z_inferred += exp(e_inferred);	
-		}
-	
-		e_loc=0;
-		count=0;
-		for(ip=0;ip<n;ip++) {
-			e_loc += VAL(config, ip)*inferred[data->h_offset+ip];
-			for(jp=(ip+1);jp<n;jp++) {
-				e_loc += VAL(config, ip)*VAL(config, jp)*inferred[count]; // data->ij[ip][jp] -- for super-speed, we'll live on the edge
-				count++;
+			if (theta2) for(k=0;k<n;k++) {
+				phi2[k]=h2[k];
+				for(l=0;l<n;l++) phi2[k] += J2[k*n+l]*s[l];
+				H2 += 0.5*s[k]*(phi2[k]+h2[k]);
 			}
-		}
-		// printf("Clock time Exact Computation: %14.12lf seconds.\n", (clock() - t0)/CLOCKS_PER_SEC);
-		return e_loc-log(z_inferred);	
-			
-	} else { // do MCMC sampling
-		t0=clock();
-		hits=0;
-		for(i=0;i<mc_iter;i++) {
-			config_sample=gsl_rng_uniform_int(data->r, (1 << data->n));
-			mcmc_sampler(&config_sample, 6, data);
-			if (config_sample == config) {
-				hits++;
-			}
-		}
-		if (hits == 0) { // desparately seeking something...
-			while((i<100*mc_iter) & (hits == 0)) {
-				config_sample=gsl_rng_uniform_int(data->r, (1 << data->n));
-				mcmc_sampler(&config_sample, 6, data);
+			for(i=0;;) {
+				lse_add(&loc1, H, theta2 ? H-H2 : 0.0);
+				if (theta2) lse_add(&loc2, H2, 0.0);
 				i++;
+				if (i == N) break;
+				b=__builtin_ctzll(i);
+				H -= 2*s[b]*phi[b];
+				if (theta2) H2 -= 2*s[b]*phi2[b];
+				s[b]=-s[b];
+				for(k=0;k<n;k++) phi[k] += 2*J[k*n+b]*s[b];
+				if (theta2) for(k=0;k<n;k++) phi2[k] += 2*J2[k*n+b]*s[b];
 			}
+			part1[chunk]=loc1; part2[chunk]=loc2;
 		}
-		printf("Clock time MCMC Sampling: %14.12lf seconds.\n", (clock() - t0)/CLOCKS_PER_SEC);
-		return log(hits+1.0/((double)i))-log((double)i);
+		free(s); free(phi); free(phi2);
 	}
+	for(chunk=0;chunk<n_chunks;chunk++) { lse_merge(&tot1, &part1[chunk]); lse_merge(&tot2, &part2[chunk]); }
+	free(part1); free(part2);
+
+	*logz=log(tot1.sum)+tot1.top;
+	if (theta2) {
+		*logz2=log(tot2.sum)+tot2.top;
+		*mean_diff=tot1.acc/tot1.sum;
+	}
+	free(J); free(J2);
 }
 
-void compute_probs(int n, double *big_list, char *filename) {
-	int i, ip, jp, sig_ip, sig_jp, count, h_offset;
-	double e_inferred, z_inferred=0;
-	FILE *fn;
-
-	h_offset=n*(n-1)/2;
-	for(i=0;i<(1 << n);i++) {	
-		e_inferred=0;
-		count=0;
-		for(ip=0;ip<n;ip++) {
-			e_inferred += VAL(i, ip)*big_list[h_offset+ip];
-			for(jp=(ip+1);jp<n;jp++) {
-				e_inferred += VAL(i, ip)*VAL(i, jp)*big_list[count]; // data->ij[ip][jp] -- for super-speed, we'll live on the edge
-				count++;
-			}
-		}
-		z_inferred += exp(e_inferred);	
-	}
-	z_inferred=log(z_inferred);
-	
-    fn = fopen(filename, "w+");
-	
-	for(i=0;i<(1 << n);i++) {
-		e_inferred=0;
-		count=0;
-		for(ip=0;ip<n;ip++) {
-			e_inferred += VAL(i, ip)*big_list[h_offset+ip];
-			for(jp=(ip+1);jp<n;jp++) {
-				e_inferred += VAL(i, ip)*VAL(i, jp)*big_list[count]; // data->ij[ip][jp] -- for super-speed, we'll live on the edge
-				count++;
-			}
-		}
-		
-		for(ip=0;ip<n;ip++) {
-			if (i & (1 << ip)) {
-				fprintf(fn, "1");
-			} else {
-				fprintf(fn, "0");
-			}
-		}
-		
-		fprintf(fn, " %.10e %.10e\n", e_inferred, exp(e_inferred-z_inferred));	
-	}
-	
-    fclose(fn);
+double log_z(int n, const double *theta) {
+	double lz;
+	enumerate(n, theta, NULL, &lz, NULL, NULL);
+	return lz;
 }
 
-double log_l(all *data, unsigned long int config, double *inferred, int do_approx) {
-	int i, n, ip, jp, sig_ip, sig_jp, hits, count=0, mc_iter=1000000;
-	double z_inferred=0;
-	double e_inferred, e_loc;
-	unsigned long int config_sample;
-	double t0;
-
-	n=data->n;
-
-	if (do_approx == 0) {
-		t0=clock();
-		
-		for(i=0;i<(1 << n);i++) {
-		
-			e_inferred=0;
-			count=0;
-			for(ip=0;ip<n;ip++) {
-				e_inferred += VAL(i, ip)*inferred[data->h_offset+ip];
-				for(jp=(ip+1);jp<n;jp++) {
-					e_inferred += VAL(i, ip)*VAL(i, jp)*inferred[count]; // data->ij[ip][jp] -- for super-speed, we'll live on the edge
-					count++;
-				}
-			}
-			z_inferred += exp(e_inferred);	
-		}
-	
-		e_loc=0;
-		count=0;
-		for(ip=0;ip<n;ip++) {
-			e_loc += VAL(config, ip)*inferred[data->h_offset+ip];
-			for(jp=(ip+1);jp<n;jp++) {
-				e_loc += VAL(config, ip)*VAL(config, jp)*inferred[count]; // data->ij[ip][jp] -- for super-speed, we'll live on the edge
-				count++;
-			}
-		}
-		// printf("Clock time Exact Computation: %14.12lf seconds.\n", (clock() - t0)/CLOCKS_PER_SEC);
-		return e_loc-log(z_inferred);	
-			
-	} else { // do MCMC sampling
-		t0=clock();
-		hits=0;
-		for(i=0;i<mc_iter;i++) {
-			config_sample=gsl_rng_uniform_int(data->r, (1 << data->n));
-			mcmc_sampler(&config_sample, 6, data);
-			if (config_sample == config) {
-				hits++;
-			}
-		}
-		if (hits == 0) { // desparately seeking something...
-			while((i<10*mc_iter) & (hits == 0)) {
-				config_sample=gsl_rng_uniform_int(data->r, (1 << data->n));
-				mcmc_sampler(&config_sample, 6, data);
-				i++;
-			}
-		}
-		printf("Clock time MCMC Sampling: %14.12lf seconds.\n", (clock() - t0)/CLOCKS_PER_SEC);
-		return log(hits+1.0/((double)i))-log((double)i);
-	}
+// KL(truth || inferred) in nats, by full enumeration
+double full_kl(int n, const double *truth, const double *inferred) {
+	double lz_t, lz_i, diff;
+	enumerate(n, truth, inferred, &lz_t, &lz_i, &diff);
+	return diff-lz_t+lz_i;
 }
 
-double full_kl(all *data, double *inferred, double *truth) { // intense, full-enumeration kl calculation... explodes exponentially
-	int i, n, ip, jp, sig_ip, sig_jp, count=0;
-	double z_inferred=0, z_truth=0, kl=0, max_catch=0;
-	double e_inferred, e_truth;
-	double t0;
+// Fill H[state] for all 2^n states, state index bit i = node i
+static double *all_h(int n, const double *theta) {
+	uint64_t N=(uint64_t)1 << n, i, state=0;
+	double *Hall=(double *)xmalloc(N*sizeof(double)), *J=(double *)xmalloc((size_t)n*n*sizeof(double));
+	double *s=(double *)xmalloc(n*sizeof(double)), *phi=(double *)xmalloc(n*sizeof(double)), H=0;
+	const double *h=theta+n*(n-1)/2;
+	int k, l, b;
+	unpack(n, theta, J);
+	for(k=0;k<n;k++) s[k]=-1.0;
+	for(k=0;k<n;k++) {
+		phi[k]=h[k];
+		for(l=0;l<n;l++) phi[k] += J[k*n+l]*s[l];
+		H += 0.5*s[k]*(phi[k]+h[k]);
+	}
+	for(i=0;;) {
+		Hall[state]=H;
+		i++;
+		if (i == N) break;
+		b=__builtin_ctzll(i);
+		H -= 2*s[b]*phi[b];
+		s[b]=-s[b];
+		state ^= ((uint64_t)1 << b);
+		for(k=0;k<n;k++) phi[k] += 2*J[k*n+b]*s[b];
+	}
+	free(J); free(s); free(phi);
+	return Hall;
+}
 
-	t0=clock();
-	
-	n=data->n;
-	// first compute the partition function -- we could actually save all the values to memory but it's faster not to; we have to do two loops; one calculates the two partition functions (normalizations) -- the second uses that normalization to compute the probabilities. Beware we are NOT doing checks for underflows/overflows in the exp calculation
-	for(i=0;i<(1 << n);i++) {
-		
-		e_inferred=0;
-		e_truth=0;
-		count=0;
-		for(ip=0;ip<n;ip++) {
-			sig_ip=(i & (1 << ip));
-			if (sig_ip) {
-				sig_ip=1;
-			} else {
-				sig_ip=-1;
-			}
-			e_inferred += sig_ip*inferred[data->h_offset+ip];
-			e_truth += sig_ip*truth[data->h_offset+ip];
-			for(jp=(ip+1);jp<n;jp++) {
-				sig_jp=(i & (1 << jp));
-				if (sig_jp) {
-					sig_jp=1;
-				} else {
-					sig_jp=-1;
-				}
-				e_inferred += sig_ip*sig_jp*inferred[count]; // data->ij[ip][jp] -- for super-speed, we'll live on the edge
-				e_truth += sig_ip*sig_jp*truth[count];
-				count++;
-			}
+// Write every configuration, its H, and its probability (one line per state, node 0 first).
+// The states are written in index order, in blocks of 2^20: within a block the low bits are enumerated
+// in Gray-code order into a small buffer, so memory stays at a few MB whatever n is.
+void compute_probs(int n, const double *theta, const char *filename) {
+	int n_low=(n > 20) ? 20 : n, k, l, b;
+	uint64_t n_blocks, block, i, state, N_low=(uint64_t)1 << n_low;
+	double *Hblk, *J, *s, *phi, H, lz;
+	const double *h=theta+n*(n-1)/2;
+	char line[MAX_NODES+1];
+	FILE *f;
+
+	if (n > ENUM_MAX_N) die("cannot enumerate 2^%d states (limit is n = %d)", n, ENUM_MAX_N);
+	n_blocks=(uint64_t)1 << (n-n_low);
+	lz=log_z(n, theta);
+	Hblk=(double *)xmalloc(N_low*sizeof(double));
+	J=(double *)xmalloc((size_t)n*n*sizeof(double)); s=(double *)xmalloc(n*sizeof(double)); phi=(double *)xmalloc(n*sizeof(double));
+	unpack(n, theta, J);
+	f=fopen(filename, "w");
+	if (f == NULL) die("cannot write '%s'", filename);
+	line[n]='\0';
+	for(block=0;block<n_blocks;block++) {
+		for(k=0;k<n_low;k++) s[k]=-1.0;
+		for(k=n_low;k<n;k++) s[k]=((block >> (k-n_low)) & 1) ? 1.0 : -1.0;
+		H=0;
+		for(k=0;k<n;k++) {
+			phi[k]=h[k];
+			for(l=0;l<n;l++) phi[k] += J[k*n+l]*s[l];
+			H += 0.5*s[k]*(phi[k]+h[k]);
 		}
-		// if (i == 0) { // check to see if we're exploding over our range
-		// 	if ((fabs(e_inferred) > 30) || (fabs(e_truth) > 30)) {
-		// 		max_catch=-(fabs(e_inferred)/e_inferred)*MAX(e_inferred, e_truth);
-		// 	}
-		// }
-		z_inferred += exp(e_inferred);
-		z_truth += exp(e_truth);
-	}
-	z_inferred=log(z_inferred);
-	z_truth=log(z_truth);
-	
-	// then compute the kl function
-	for(i=0;i<(1 << n);i++) {
-		
-		e_inferred=0;
-		e_truth=0;
-		count=0;
-		for(ip=0;ip<n;ip++) {
-			sig_ip=(i & (1 << ip));
-			if (sig_ip) {
-				sig_ip=1;
-			} else {
-				sig_ip=-1;
-			}
-			e_inferred += sig_ip*inferred[data->h_offset+ip];
-			e_truth += sig_ip*truth[data->h_offset+ip];
-			for(jp=(ip+1);jp<n;jp++) {
-				sig_jp=(i & (1 << jp));
-				if (sig_jp) {
-					sig_jp=1;
-				} else {
-					sig_jp=-1;
-				}
-				e_inferred += sig_ip*sig_jp*inferred[count];
-				e_truth += sig_ip*sig_jp*truth[count];
-				count++;
-			}
+		state=0;
+		for(i=0;;) {
+			Hblk[state]=H;
+			i++;
+			if (i == N_low) break;
+			b=__builtin_ctzll(i);
+			H -= 2*s[b]*phi[b];
+			s[b]=-s[b];
+			state ^= ((uint64_t)1 << b);
+			for(k=0;k<n;k++) phi[k] += 2*J[k*n+b]*s[b];
 		}
-		// printf("%i %lf %lf %lf\n", i, kl, e_truth, e_inferred);
-		kl += exp(e_truth-z_truth)*(e_truth-z_truth-e_inferred+z_inferred);
-			// log(exp(e_truth+max_catch-z_truth)/exp(e_inferred+max_catch-z_inferred));
+		for(i=0;i<N_low;i++) {
+			uint64_t full=(block << n_low) | i;
+			for(k=0;k<n;k++) line[k]=((full >> k) & 1) ? '1' : '0';
+			fprintf(f, "%s %.10e %.10e\n", line, Hblk[i], exp(Hblk[i]-lz));
+		}
 	}
-	// printf("Clock time KL: %14.12lf seconds.\n", (clock() - t0)/CLOCKS_PER_SEC);
-	
-	return kl;
+	if (ferror(f) || fclose(f) != 0) die("error writing '%s'", filename);
+	free(Hblk); free(J); free(s); free(phi);
+}
+
+// Draw n_obs independent states from the exact distribution (n <= EXACT_MAX_N)
+void sample_exact(int n, const double *theta, int n_obs, uint64_t *out, gsl_rng *r) {
+	uint64_t N=(uint64_t)1 << n, i, lo, hi, mid;
+	double *c, mx, total, u;
+	int j;
+
+	if (n > EXACT_MAX_N) die("exact sampling needs n <= %d", EXACT_MAX_N);
+	c=all_h(n, theta);
+	mx=c[0];
+	for(i=1;i<N;i++) if (c[i] > mx) mx=c[i];
+	total=0;
+	for(i=0;i<N;i++) { total += exp(c[i]-mx); c[i]=total; } // cumulative, unnormalised
+	for(j=0;j<n_obs;j++) {
+		u=gsl_rng_uniform(r)*total;
+		lo=0; hi=N-1;
+		while(lo < hi) { // first index with c[index] > u
+			mid=lo+(hi-lo)/2;
+			if (c[mid] > u) hi=mid; else lo=mid+1;
+		}
+		out[j]=lo;
+	}
+	free(c);
+}
+
+// Single-spin-flip heat-bath sampler: iter/2 sweeps annealing from infinite temperature, then iter/2
+// sweeps at the target temperature. NOTE: for strong couplings this does not reach equilibrium in the
+// 1000 sweeps used by -g (see CLAUDE_IMPROVEMENTS_SUMMARY.md); prefer sample_exact when n allows.
+void mcmc_sampler(uint64_t *config, int iter, int n, const double *theta, gsl_rng *r) {
+	int i, j, pos, phase, steps=n*iter/2;
+	double *J=(double *)xmalloc((size_t)n*n*sizeof(double)), running, scale, sp, e;
+	const double *h=theta+n*(n-1)/2;
+
+	unpack(n, theta, J);
+	for(phase=0;phase<2;phase++) {
+		for(i=0;i<steps;i++) {
+			scale=(phase == 0) ? i*1.0/steps : 1.0;
+			pos=(int)gsl_rng_uniform_int(r, n);
+			sp=((*config >> pos) & 1) ? 1.0 : -1.0;
+			running=h[pos];
+			for(j=0;j<n;j++) running += J[pos*n+j]*(((*config >> j) & 1) ? 1.0 : -1.0);
+			running *= -2*sp*scale; // log of p(flipped) / p(current)
+			e=(running > 0) ? 1.0/(1.0+exp(-running)) : exp(running)/(1.0+exp(running));
+			if (gsl_rng_uniform(r) < e) *config ^= ((uint64_t)1 << pos);
+		}
+	}
+	free(J);
 }

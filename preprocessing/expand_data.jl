@@ -85,7 +85,8 @@ d = DataFrame(
     entry_prob = total_pnorm) # probability of being in this config for the entry id
 
 # save stuff 
-outfile_csv = replace(dir, "preprocessing" => "data/preprocessing/data_expanded_2.csv")
+# prep_late.py reads data_expanded.csv (this previously wrote data_expanded_2.csv, which nothing read)
+outfile_csv = replace(dir, "preprocessing" => "data/preprocessing/data_expanded.csv")
 outfile_txt = replace(dir, "preprocessing" => "data/preprocessing/matrix_expanded.txt")
 CSV.write(outfile_csv, d)
 writedlm(outfile_txt, mat)

@@ -1,0 +1,43 @@
+caught by unit           field term dropped from H (NN>1 routine)
+caught by unit+cli       field term dropped from H (NN=1 routine)
+caught by unit+cli       legacy gradient ignores the weights
+caught by unit           marginal objective without the square root
+caught by unit           marginal coupling gradient
+caught by unit           marginal field gradient
+caught by unit+cli       legacy/frozen flows along missing nodes
+caught by unit           marginal flows along missing nodes
+caught by unit+cli       penalty scaling
+caught by unit+cli       duplicate rows not summed
+caught by unit+cli       frozen weights not frozen (NN>1 routine)
+caught by unit+cli       frozen weights not frozen (NN=1 routine)
+caught by unit+cli       sign of field gradient (partial rows)
+caught by unit+cli       sign of field gradient (complete rows)
+caught by cli            0 read as yes
+caught by unit+cli       completions not enumerated
+SURVIVED                 non-finite gradient not detected
+caught by unit+cli       non-finite start not reported
+caught by cli            every fit reported as converged
+caught by cli            non-finite parameters accepted
+caught by unit+cli       multi-flip: pair correction to the flow
+caught by unit+cli       multi-flip: coupling gradient ignores sets containing both ends
+caught by unit           multi-flip: marginal coupling gradient
+caught by unit+cli       multi-flip: penalty not scaled by the number of neighbours
+caught by unit+cli       NN argument ignored
+caught by unit           multi-flip: marginal objective without the square root
+caught by unit+cli       Gray-code energy update
+caught by unit+cli       KL sign of log Z
+caught by unit+cli       exact sampler off by one state
+caught by unit           pseudo-likelihood factor
+caught by unit           -z bit order
+caught by unit           Monte Carlo acceptance sign
+caught by unit           CV ignores weights
+caught by unit           held-out row left in the training set
+caught by unit           folds with missing data start from the full-data fit
+caught by unit           stage-1 fold fit includes the held-out row
+caught by unit+cli       search picks the worst grid point
+caught by unit           search returns a value when every candidate is invalid
+caught by unit           search never extends below -2
+caught by unit           groups with partial rows held out
+caught by cli            --legacy does not select the legacy objective
+caught by cli            integer arguments not range-checked
+41 of 42 injected bugs caught

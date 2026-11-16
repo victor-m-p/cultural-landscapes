@@ -22,7 +22,7 @@ def fast_logsumexp(X, coeffs=None):
     Returns:
         float: sum of exponentials
     """
-    Xmx = max(X)
+    Xmx = np.max(X)
     if coeffs is None:
         y = np.exp(X-Xmx).sum()
     else:
@@ -32,9 +32,16 @@ def fast_logsumexp(X, coeffs=None):
         return np.log(np.abs(y))+Xmx, -1.
     return np.log(y)+Xmx, 1.
 
-# still create J_combinations is slow for large number of nodes
 def p_dist(h, J):
     """return probabilities for 2**h states
+
+    Configuration i is the binary representation of i (first question = most
+    significant bit, 1 = yes), i.e. the same ordering as bin_states(). J holds
+    the n(n-1)/2 couplings in the order (0,1), (0,2), ..., (1,2), ...
+
+    Vectorized: memory is 2**n * n floats and it runs in about a second for
+    n = 20 (the earlier version built every pair for every state in Python,
+    which needed several GB and about a minute; the output is identical).
 
     Args:
         h (np.Array): local fields
@@ -43,19 +50,17 @@ def p_dist(h, J):
     Returns:
         np.Array: probabilities for all configurations
     """
+    h = np.asarray(h, dtype = float)
+    J = np.asarray(J, dtype = float)
     n_nodes = len(h)
-    hJ = np.concatenate((h, J))
-    h_combinations = np.array(list(itertools.product([1, -1], repeat = n_nodes)))
-    J_combinations = np.array([list(itertools.combinations(i, 2)) for i in h_combinations])
-    J_combinations = np.add.reduce(J_combinations, 2)
-    J_combinations[J_combinations != 0] = 1
-    J_combinations[J_combinations == 0] = -1
-    condition_arr = np.concatenate((h_combinations, J_combinations), axis = 1)
-    flipped_arr = hJ * condition_arr
-    summed_arr = np.sum(flipped_arr, axis = 1)
-    logsumexp_arr = fast_logsumexp(summed_arr)[0]
-    Pout = np.exp(summed_arr - logsumexp_arr)
-    return Pout[::-1]
+    if len(J) != n_nodes * (n_nodes - 1) // 2:
+        raise ValueError(f'expected {n_nodes * (n_nodes - 1) // 2} couplings for {n_nodes} nodes, got {len(J)}')
+    states = bin_states(n_nodes).astype(float)
+    J_matrix = np.zeros((n_nodes, n_nodes))
+    J_matrix[np.triu_indices(n_nodes, 1)] = J
+    energies = np.einsum('ij,ij->i', states @ J_matrix, states) + states @ h
+    logsumexp_arr = fast_logsumexp(energies)[0]
+    return np.exp(energies - logsumexp_arr)
 
 def bin_states(n, sym=True):
     """generate 2**n possible configurations
@@ -67,7 +72,7 @@ def bin_states(n, sym=True):
     Returns:
         np.Array: 2**n configurations 
     """
-    v = np.array([list(np.binary_repr(i, width=n)) for i in range(2**n)]).astype(int)
+    v = ((np.arange(2**n)[:, None] >> np.arange(n - 1, -1, -1)) & 1).astype(int)
     if sym is False:
         return v
     return v*2-1

@@ -1,0 +1,9 @@
+\begin{tabular}{lr}
+\toprule
+  Group &  Weight \\
+\midrule
+Group 1 &   24.11 \\
+Group 2 &   15.30 \\
+Group 3 &    6.21 \\
+\bottomrule
+\end{tabular}

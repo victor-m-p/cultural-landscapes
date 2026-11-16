@@ -1,5 +1,12 @@
 #!/opt/local/bin/ruby
 #!/usr/bin/ruby
+# NOTE (2026 revision): written for the published version of mpf, whose defaults have since changed
+# (marginal objective for missing data, training-rows-only weighted cross-validation searched below
+# log-sparsity -2, exact sampling in -g for n <= 24, and NN > 1 now really uses multi-flip neighbours;
+# the published code ran NN=1 whatever NN was given). To repeat the published procedure add --legacy
+# to the -c / -o / -t / -l calls and --mcmc to the -g calls, and use NN=1. See README.md.
+# This script also calls -c / -t with the argument order of an earlier version of the program (a
+# log-sparsity before NN), so it will not run as it stands. Kept for the record.
 # sbatch -N 100 -o CV_SCAN --mail-type=ALL -t 12:00:00 -p RM ./cv_scan.rb
 
 require 'parallel'

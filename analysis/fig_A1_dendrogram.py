@@ -31,6 +31,8 @@ def plot_dendrogram(model, **kwargs):
         [model.children_, model.distances_, counts]
     ).astype(float)
 
+    if kwargs.pop('return_linkage', False):
+        return linkage_matrix
     return dendrogram(linkage_matrix, **kwargs)
 
 # load configurations 
@@ -77,6 +79,11 @@ color_dict = {
     'C3': "#F21A00"
 }
 
+# (more clusters than colours can only happen for parameters other than the published ones)
+extra_colors = ['#7a7a7a', '#8e44ad', '#2e8b57', '#d35400', '#1f1f1f']
+for i, c in enumerate(sorted(set(leaves_color) - set(color_dict))):
+    color_dict[c] = extra_colors[i % len(extra_colors)]
+
 leaf_cols = {leaf:color_dict.get(c) for leaf, c in zip(leaves, leaves_color)}
 
 link_cols = {}
@@ -105,6 +112,17 @@ leaf_dataframe = pd.DataFrame(
     {'node_id': leaves,
      'node_cluster': leaves_color}
 )
+
+# the three top-level groups of the same tree (the paper's Group 1, 2, 3). Cutting the tree into
+# three reproduces the grouping that later scripts used to hard-code for the published fit, and
+# is defined for any set of parameters.
+from scipy.cluster.hierarchy import fcluster
+linkage_matrix = plot_dendrogram(model, return_linkage = True)
+clade_dataframe = pd.DataFrame(
+    {'node_id': np.arange(len(model.labels_)),
+     'node_clade': fcluster(linkage_matrix, 3, 'maxclust')}
+)
+clade_dataframe.to_csv('../data/analysis/dendrogram_clades.csv', index = False)
 
 # save information
 leaf_dataframe.to_csv('../data/analysis/dendrogram_clusters.csv', index = False)

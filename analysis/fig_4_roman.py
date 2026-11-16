@@ -89,19 +89,30 @@ entryname_annotations = {
     470: 'Spartan Cults'
 }
 
+# label offsets, keyed by entry (chosen by hand for the layout of the published fit)
 position_annotations = {
-    0: (-60, -750), # Roman
-    1: (-150, 450), # Egypt
-    2: (-250, -400), # Meso 
-    4: (-100, -430), # Pontifex
-    5: (-100, 400), # Achaemenid
-    7: (-120, 250), # Archaic Spartan
+    534: (-60, -750), # Roman
+    738: (-150, 450), # Egypt
+    230: (-250, -400), # Meso
+    993: (-100, -430), # Pontifex
+    424: (-100, 400), # Achaemenid
+    470: (-120, 250), # Archaic Spartan
 }
 
 d_annot = (pd.DataFrame.from_dict(entryname_annotations, orient='index', columns=['entry_name_short'])
     .assign(entry_id=lambda x: x.index)
-    .merge(annotations, on=['entry_id'], how='inner')
-    .loc[[0, 1, 2, 4, 5, 6]])
+    .merge(annotations, on=['entry_id'], how='inner'))
+# one label per entry: its most probable configuration among the nodes that an earlier entry in the
+# list has not already taken (the same rule as in fig_4_methodist.py; for the published fit it gives
+# the selection that used to be written as row numbers).
+keep, used_nodes = [], set()
+for entry_id in entryname_annotations:
+    candidates = d_annot[(d_annot['entry_id'] == entry_id) & ~d_annot['node_id'].isin(used_nodes)]
+    if len(candidates) > 0:
+        best = candidates['entry_prob'].idxmax()
+        keep.append(best)
+        used_nodes.add(d_annot.loc[best, 'node_id'])
+d_annot = d_annot.loc[keep]
 
 # main plot 
 cols = {0: '#c99700', 1: '#EBCC2A', 2: '#f7d15c'}
@@ -126,7 +137,7 @@ for index, row in d_annot.iterrows():
     node_idx = row['node_id']
     name = row['entry_name_short']
     pos_x, pos_y = pos[node_idx]
-    x_nudge, y_nudge = position_annotations.get(node_idx)
+    x_nudge, y_nudge = position_annotations.get(row['entry_id'], (0, 200))
     color = "#c99700"
     ax.annotate(name, xy = [pos_x, pos_y],
                 color = "#c99700",

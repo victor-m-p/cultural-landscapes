@@ -1,0 +1,23 @@
+\begin{tabular}{rrll}
+question_id & question_id_drh & question & question_drh \\
+1 & 4676 & Official political support & Does the religion have official political support \\
+2 & 4729 & Scriptures & Does the religious group have scriptures: \\
+3 & 4745 & Monumental religious architecture & Is monumental religious architecture present: \\
+4 & 4776 & Spirit-body distinction & Is a spirit-body distinction present: \\
+5 & 4780 & Belief in afterlife & Belief in afterlife: \\
+6 & 4787 & Reincarnation in this world & Reincarnation in this world: \\
+7 & 4794 & Special treatment for corpses & Are there special treatments for adherents' corpses: \\
+8 & 4808 & Co-sacrifices in tomb/burial & Are co-sacrifices present in tomb/burial: \\
+9 & 4814 & Grave goods & Are grave goods present: \\
+10 & 4821 & Formal burials & Are formal burials present: \\
+11 & 4827 & Supernatural beings present & Are supernatural beings present: \\
+12 & 4954 & Supernatural monitoring present & Is supernatural monitoring present: \\
+13 & 4983 & Supernatural beings punish & Do supernatural beings mete out punishment: \\
+14 & 5127 & Castration required & Does membership in this religious group require castration: \\
+15 & 5132 & Adult sacrifice required & Does membership in this religious group require sacrifice of adults: \\
+16 & 5137 & Child sacrifice required & Does membership in this religious group require sacrifice of children: \\
+17 & 5142 & Suicide required & Does membership in this religious group require self-sacrifice (suicide): \\
+18 & 5152 & Small-scale rituals required & Does membership in this religious group require participation in small-scale rituals (private, household): \\
+19 & 5154 & Large-scale rituals required & Does membership in this religious group require participation in large-scale rituals: \\
+20 & 5220 & Distinct written language & Does the religious group in question possess its own distinct written language: \\
+\end{tabular}

@@ -88,9 +88,13 @@ def subset_nbest(d, number_questions, minimize_value, question_id_column, nan_co
            .size()
            .reset_index(name="count")
            .query(f"{nan_column} == {minimize_value}")
-           .sort_values("count", ascending=True)
-           .head(number_questions))
-    return d[d[question_id_column].isin(d_[question_id_column])]
+           .sort_values("count", ascending=True))
+    # questions with no missing answers at all have no row in d_; they are the most
+    # complete questions and come first (previously they were silently dropped)
+    all_questions = d[question_id_column].drop_duplicates()
+    no_missing = all_questions[~all_questions.isin(d_[question_id_column])].sort_values()
+    best = pd.concat([no_missing, d_[question_id_column]]).head(number_questions)
+    return d[d[question_id_column].isin(best)]
 
 def max_constraints(best_questions, question_fractions, number_nan, 
                     minimize_value, entry_id_column, nan_column, 
@@ -111,15 +115,14 @@ def max_constraints(best_questions, question_fractions, number_nan,
     Returns:
         pd.DataFrame: dataframe with entries <= number_nan subsetted 
     """
-    entry_nan = best_questions.groupby([entry_id_column, nan_column]).size().reset_index(name='count')
-    entry_nan = entry_nan.merge(pd.DataFrame(list(itertools.product(
-        entry_nan[entry_id_column].drop_duplicates(), 
-        entry_nan[nan_column].drop_duplicates())), 
-        columns=[entry_id_column, nan_column]), 
-        on=[entry_id_column, nan_column], how="outer").fillna(minimize_value)
-
-    entry_nan = entry_nan[entry_nan[nan_column] == minimize_value].sort_values('count', ascending=True)
-    entry_tolerated = entry_nan[entry_nan['count'] <= number_nan][[entry_id_column]]
+    # number of missing answers per entry, with zero for entries that answered everything.
+    # (Previously the zero rows were only created if some entry had a missing answer, so a set of
+    # questions answered by every entry made every entry disappear.)
+    entries = best_questions[entry_id_column].drop_duplicates()
+    n_missing = (best_questions[best_questions[nan_column] == minimize_value]
+                 .groupby(entry_id_column).size()
+                 .reindex(entries, fill_value=0))
+    entry_tolerated = pd.DataFrame({entry_id_column: n_missing.index[(n_missing <= number_nan).values]})
     entry_questions = best_questions.merge(entry_tolerated, on=entry_id_column, how='inner')
     entry_questions = entry_questions.merge(question_fractions, 
                                             on=[entry_id_column, question_id_column], 
@@ -164,6 +167,8 @@ def to_dataframe(weighted_combinations):
     Returns:
         pd.DataFrame: expanded (matrix-like) dataframe with questions as columns and entry_id, weight
     """
+    if len(weighted_combinations) == 0:
+        return pd.DataFrame(columns=['entry_id', 'weight'])
     vals = []
     cols = []
     for x in weighted_combinations: 
@@ -217,7 +222,8 @@ def save_output(best_entries, entry_reference_df, question_reference_df,
 
     num_rows = len(direct_reference_df)
     num_unique_entries = len(unique_entries)
-    identifier = f'questions_{num_questions}_maxna_{num_nan}_rows_{num_rows}_entries_{num_unique_entries}'
+    # 'nrows' matches the file names used by every downstream script and by the committed data
+    identifier = f'questions_{num_questions}_maxna_{num_nan}_nrows_{num_rows}_entries_{num_unique_entries}'
     direct_reference_file = os.path.join(reference_folder, f'direct_reference_{identifier}.csv')
     matrix_file = os.path.join(mpf_folder, f'matrix_{identifier}.txt')
     entry_reference_file = os.path.join(reference_folder, f'entry_reference_{identifier}.csv')

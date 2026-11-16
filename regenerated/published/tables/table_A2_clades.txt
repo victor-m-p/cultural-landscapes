@@ -1,0 +1,21 @@
+\begin{tabular}{lllrrr}
+\toprule
+  Group &  Color &                          Question &  Avg. S &  Avg. O &   Diff \\
+\midrule
+Group 1 &    Red &      Small-scale rituals required &   97.41 &   38.67 &  58.74 \\
+Group 1 &    Red & Monumental religious architecture &   79.64 &   40.41 &  39.23 \\
+Group 1 &    Red &                        Scriptures &   94.95 &   56.08 &  38.87 \\
+Group 1 &    Red &      Large-scale rituals required &  100.00 &   65.77 &  34.23 \\
+Group 1 &    Red &       Reincarnation in this world &   38.47 &    8.93 &  29.54 \\
+Group 2 &   Blue &      Small-scale rituals required &   22.25 &   86.72 & -64.47 \\
+Group 2 &   Blue &                       Grave goods &    7.43 &   57.19 & -49.76 \\
+Group 2 &   Blue &      Large-scale rituals required &   50.90 &   95.99 & -45.09 \\
+Group 2 &   Blue &     Special treatment for corpses &   44.53 &   87.74 & -43.20 \\
+Group 2 &   Blue &        Official political support &   40.79 &   76.01 & -35.22 \\
+Group 3 & Yellow &                        Scriptures &   19.37 &   90.21 & -70.84 \\
+Group 3 & Yellow &                       Grave goods &   86.97 &   30.62 &  56.35 \\
+Group 3 & Yellow &      Co-sacrifices in tomb/burial &   37.15 &    3.81 &  33.34 \\
+Group 3 & Yellow &        Official political support &   91.69 &   58.64 &  33.06 \\
+Group 3 & Yellow &     Special treatment for corpses &   98.27 &   68.76 &  29.51 \\
+\bottomrule
+\end{tabular}

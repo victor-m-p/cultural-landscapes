@@ -1,42 +1,44 @@
 SHELL=/bin/bash
 
-# for mac...
-# CC=/opt/local/bin/clang
-# CFLAGS=-O3 -fopenmp `gsl-config --cflags`
-# LFLAGS=-lm `gsl-config --libs`
-
-# for PSC with GCC
-# run `module load gcc` first!
-# CC=gcc
-# CFLAGS=-O3 -fopenmp `gsl-config --cflags`
-# LFLAGS=`gsl-config --libs`
-
-# for PSC with AMD compiler
-# time tests suggest that AMD is 10%±2% faster than GCC
-# run `module load aocc aocl` first!
-CC=clang
-CFLAGS=-O3 -zopt -fopenmp
-LFLAGS=-unroll-aggressive -lalm -lm `gsl-config --libs`
+# Needs GSL and (optionally, for speed) a compiler with OpenMP.
+#
+# Linux / PSC (run `module load gcc` first):      make
+# Mac with MacPorts clang (Apple's clang has no OpenMP):
+#     make CC=/opt/local/bin/clang-mp-19
+# AMD compiler on PSC (run `module load aocc aocl` first):
+#     make CC=clang CFLAGS="-O3 -zopt -fopenmp" LDLIBS="-lalm -lm `gsl-config --libs`"
+# Without OpenMP (single-threaded, works with any C compiler):
+#     make OPENMP=
+# make predefines CC=cc, so `CC ?= gcc` would do nothing; set gcc unless CC was given explicitly
+ifeq ($(origin CC),default)
+CC = gcc
+endif
+OPENMP ?= -fopenmp
+# plain `=`: a CFLAGS or LDLIBS exported by the environment (conda, HPC modules) must not silently drop the
+# OpenMP and GSL flags; to change them, pass them on the make command line as in the examples above
+CFLAGS = -O3 -Wall $(OPENMP) `gsl-config --cflags`
+LDLIBS = -lm `gsl-config --libs`
 
 OBJ = mpf.o mcmc.o nlin.o nsb.o
 
-all : main.c $(OBJ)
-	${CC} $^ -o mpf ${CFLAGS} ${LFLAGS}
+.PHONY: all test clean
 
-mpf.o: mpf.c
-	${CC} $^ ${CFLAGS} -c
+all: mpf
 
-mcmc.o: mcmc.c
-	${CC} $^ ${CFLAGS} -c
+mpf: main.o $(OBJ)
+	$(CC) $(CFLAGS) $^ -o $@ $(LDLIBS)
 
-nlin.o: nlin.c
-	${CC} $^ ${CFLAGS} -c
+%.o: %.c mpf.h
+	$(CC) $(CFLAGS) -c $< -o $@
 
-nsb.o: nsb.c
-	${CC} $^ ${CFLAGS} -c
+# unit tests (objective against brute-force references, gradients, enumeration, sampling, CV) and
+# command-line tests; see tests/README.md
+tests/test_mpf: tests/test_mpf.c $(OBJ) mpf.h
+	$(CC) $(CFLAGS) -I. tests/test_mpf.c $(OBJ) -o $@ $(LDLIBS)
+
+test: mpf tests/test_mpf
+	./tests/test_mpf
+	bash tests/test_cli.sh
 
 clean:
-	rm -f *.o
-	rm -f mpf
-	rm -f mpf_simple
-	
+	rm -f *.o mpf tests/test_mpf

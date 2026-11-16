@@ -1,0 +1,15 @@
+{
+ "git_head": "23dce376815141fb2e2679af80292dd5973b1393",
+ "sources": {
+  "mpf.h": "fd51d9d3ceba917e253a29e05ff2544c2b8a29bdb46352cd5483b2c3aa3715ee",
+  "mpf.c": "11f1a8d4f054e922fd74c1128bc0ee7977b8be047c3afbf7f06e58a0343dbbcc",
+  "mcmc.c": "b805a3e626d13747416bbbb9b9fbc801c7d2c52bf13131c6a3957a764ec0f3d9",
+  "nlin.c": "c8b64836d8608f55c28091a2614f3a377d93da7e634fab9dc8861f38db337df8",
+  "nsb.c": "ba5ed18a6d5dfde28ab8958969d9008df8073c80089f3e3df7dd3aadcd970540",
+  "main.c": "a8615a9aa10705975c1b0581d27861c01c3aba357d4eec1a94cc240292aca202"
+ },
+ "binary": "c0c3171c3fb128d1203f321731347b04b11b8103455450311aff8acb2124d3a8",
+ "python": "3.14.6",
+ "numpy": "2.5.3",
+ "platform": "macOS-26.7.1-arm64-arm-64bit-Mach-O"
+}

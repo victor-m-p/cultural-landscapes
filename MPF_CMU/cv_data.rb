@@ -1,5 +1,10 @@
 #!/usr/bin/ruby
 #!/opt/local/bin/ruby
+# NOTE (2026 revision): written for the published version of mpf, whose defaults have since changed
+# (marginal objective for missing data, training-rows-only weighted cross-validation searched below
+# log-sparsity -2, exact sampling in -g for n <= 24, and NN > 1 now really uses multi-flip neighbours;
+# the published code ran NN=1 whatever NN was given). To repeat the published procedure add --legacy
+# to the -c / -o / -t / -l calls and --mcmc to the -g calls, and use NN=1. See README.md.
 #sbatch -N 1 -o CV_DATA_NEW_1 --mail-type=ALL -t 48:00:00 -p RM ./cv_data.rb
 
 set_num=ARGV[0].to_i

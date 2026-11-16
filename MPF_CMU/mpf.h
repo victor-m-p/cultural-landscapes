@@ -1,144 +1,153 @@
-#include <omp.h>
+#ifndef MPF_H
+#define MPF_H
 
-#include <stdio.h> 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
+#include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <math.h>
 #include <string.h>
 #include <time.h>
-#include <unistd.h> // we use this to get process ID and help randomness
+#include <unistd.h>
 
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_math.h>
-#include <gsl/gsl_eigen.h>
-#include <gsl/gsl_complex_math.h>
-#include <gsl/gsl_multimin.h>
-#include <gsl/gsl_statistics_double.h>
-
 #include <gsl/gsl_sf.h>
-//#include <gsl/gsl_errno.h>
-#include <gsl/gsl_roots.h>
+#include <gsl/gsl_errno.h>
 #include <gsl/gsl_integration.h>
 
-#define BIG 1e6
-#define BIGI 1e-6
-#define EPSILON 1e-16
+// ---- limits -------------------------------------------------------------------------------
+#define MAX_NODES 62        // states are packed into a uint64_t
+#define MAX_BLANKS 20       // an observation with b blanks is expanded into 2^b completions
+#define MAX_NN 6            // largest neighbourhood: all states within this Hamming distance of a data state
+#ifndef EXACT_MAX_N
+#define EXACT_MAX_N 24      // largest n for which we enumerate all 2^n states inside loops (CV, sampling)
+#endif
+#define ENUM_MAX_N 30       // largest n for which we enumerate all 2^n states at all (KL, -z)
+
+// ---- which Partial-MPF objective to use for rows with missing entries ----------------------
+// Rows without blanks are treated identically by all three (ordinary MPF, convex).
+// Population consistency (see CLAUDE_IMPROVEMENTS_SUMMARY.md): OBJ_MARGINAL requires missingness that does
+// not depend on the answers (MCAR); the OBJ_FROZEN fixed point requires only missing-at-random; OBJ_LEGACY
+// is biased under both.
+#define OBJ_MARGINAL 0  // MPF applied to the marginal over the observed nodes (a single objective; the default)
+#define OBJ_LEGACY   1  // the objective used for the published paper (weights differentiated through)
+#define OBJ_FROZEN   2  // completion weights frozen while minimising, re-estimated, iterated to a fixed point
+
+// ---- raw data -------------------------------------------------------------------------------
+typedef struct {
+	int m;            // number of rows in the file
+	int n;            // number of nodes
+	int8_t *v;        // m*n entries: +1, -1, or 0 (blank)
+	double *w;        // m weights ("multiplicity")
+	int *n_blanks;    // number of blanks in each row
+	int *group;       // optional group id per row (rows of one entry share an id); NULL if none
+	int nn;           // neighbourhood: flows go to every state within Hamming distance nn (1 = single flips)
+} dataset;
+
+// ---- everything the objective needs, built from a subset of the rows of a dataset ----------
+typedef struct {
+	int n;            // nodes
+	int np;           // parameters: n(n-1)/2 couplings (row-major, i<j) then n fields
+	int D;            // unique observations
+	long R;           // total rows after expanding blanks
+	int maxc;         // largest number of completions of any observation
+	double *sig;      // R*n spins (+1/-1)
+	double *omask;    // D*n: 1 if node is observed in that observation, 0 if blank
+	double *mult;     // D weights
+	long *start;      // D+1: first expanded row of each observation
+	double *lwfrozen; // R frozen log completion weights (OBJ_FROZEN)
+	double total_w;   // sum of weights
+	int nn;           // neighbourhood size (see dataset)
+	double n_prox;    // neighbours per fully-observed state: sum_{j=1..nn} C(n, j)
+	double sparsity;  // penalty multiplier: n_prox * 10^log_sparsity * total_w / np
+	// scratch
+	double *J, *gJ, *X, *T, *H, *lw, *g, *u, *Rk, *LQ;
+	// scratch for nn > 1: the subsets of observed nodes that are flipped together, and their flows
+	long max_sub;
+	int *sub_mem, *sub_size;
+	double *E, *Rv, *LQs, *Ru, *Pu;
+} model;
+
+// how a fit ended
+#define FIT_CONVERGED 0   // gradient (for OBJ_FROZEN: the fixed-point residual) below tolerance
+#define FIT_STALLED   1   // the objective stopped decreasing at machine precision but the gradient is not small
+#define FIT_MAXIT     2   // iteration limit reached
+#define FIT_NUMERICAL 3   // a non-finite objective or gradient was encountered
 
 typedef struct {
-	char *filename;
-	double *big_list_true;
-	double kl_true;
-	double *best_fit;
-	int nn;
-} cross_val;
+	int iterations;
+	long evaluations;
+	double k;         // objective at the returned point
+	double gmax;      // max |gradient component| at the returned point
+	int status;       // FIT_*
+	int converged;    // status == FIT_CONVERGED
+} fit_info;
+const char *fit_status_name(int status);
 
 typedef struct {
-	unsigned long int config;
-	int *data_prox; // points to a location in the data prox vector
-} near_struct;
+	int objective;     // OBJ_*
+	int legacy_cv;     // 1: score held-out rows without their weights, one row per fold (as published)
+	int verbose;
+	int force_mcmc;    // -g: use the Monte Carlo sampler even when exact sampling is possible
+	unsigned long seed; int have_seed;
+	char *groups_file;
+} options;
 
 typedef struct {
-	int *config_base; // base configuration (-1, +1, 0)
-	double mult; // multiplicity of base config (including blanks)
+	const dataset *data;
+	const char *include;  // optional row mask (NULL = all rows)
+	const double *start;  // optional starting parameters for the full fit (NULL = zeros)
+	const double *stage1; // log-sparsity of the complete-rows stage, if the fit is staged (NULL otherwise)
+	const options *opt;
+	const double *truth;  // for kl_holder
+	double last_value;
+	fit_info last_fit;    // set by kl_holder
+} cv_context;
 
+// data
+dataset *read_data(const char *filename);
+void read_groups(dataset *d, const char *filename);
+void free_data(dataset *d);
+double *read_params(const char *filename, int np);
+void write_params(const char *filename, const double *x, int np);
 
-	int n_blanks; // number of blanks
-	int n_config; // 2^n_blanks
-	int *blanks; // location of blanks
+// model / objective / fitting
+model *build_model(const dataset *d, const char *include, double log_sparsity);
+void free_model(model *m);
+double compute_k(model *m, const double *theta, double *grad, int objective, int set_frozen);
+fit_info fit_model(model *m, double *x, int objective);
 
-	// for the below, this is filled in *even* if there are no blanks
-	
-	unsigned long int *config; // all the configurations filled in and represented as an unsigned long for speed; number of configs is (1 << n_blanks) -- this is written once, then 
-	double *mult_sim; // list of simulated conditional multiplicity configurations
-	double **mult_sim_pointer; // pointers to the multi_sim in the all list
-	int **prox;
-} sample;
+// exact enumeration and sampling
+double log_z(int n, const double *theta);
+double full_kl(int n, const double *truth, const double *inferred);
+double h_value(int n, const double *theta, const int8_t *v);
+double pseudo_loglik(int n, const double *theta, const int8_t *v);
+void compute_probs(int n, const double *theta, const char *filename);
+void sample_exact(int n, const double *theta, int n_obs, uint64_t *out, gsl_rng *r);
+void mcmc_sampler(uint64_t *config, int iter, int n, const double *theta, gsl_rng *r);
 
-typedef struct {
-	int m;	// number of samples
-	int uniq; // number of unique samples
-	int n; 	// number of nodes
-	int max_config; // max number of blank configs 2^max_blanks
-	int max_blanks; // max number of blanks
-	
-	int near_uniq; // total number of neighbours -- this will be constant for everyone
-	int n_prox; // number of neighbours of any point -- this will be constant for everyone
-	unsigned long int *near; // the list of neighbours, represented as unsigned long int for speed.
-	near_struct **near_set;
-		
-	sample **obs_raw; // sample that is read in; this will be sorted and duplicate-filtered
-	sample **obs; // the observations that we actually work with
-	
-	double log_sparsity;
-	double sparsity;
-	
-	int n_all;
-	
-	int n_params;	
-	double *big_list;
-	double *old_list;
-	
-	double *best_fit;
-		
-	double *nei;
-	double *ei;
-	
-	double k; 
-	double *dk;
-	
-	int **ij;
-	int h_offset;
-	
-	gsl_rng *r;
-} all;
-
-gsl_rng *rng();
-
-all *new_data();
-void delete_data(all *data);
-
-void read_data(char *filename, all *data);
-void process_obs_raw(all *data);
-void init_params(all *data);
-void create_near(all *data, int n_step);
-void update_mult_sim(all *data);
-
-void compute_k_general(all *data, int do_derivs);
-void simple_minimizer(all *data);
-
-void print_vec(unsigned long a);
-unsigned long int convert(int *list);
-
-void mcmc_sampler(unsigned long int *config, int iter, all *data);
-double full_kl(all *data, double *inferred, double *truth);
-double log_l(all *data, unsigned long int config, double *inferred, int do_approx);
-void compute_probs(int n, double *big_list, char *filename);
-
-double cross(char *filename, double log_sparsity, int nn, double *best_fit);
-double minimize_kl(cross_val *cv, int fast_version);
-void update_sparsity(all *data);
-
+// cross-validation and the search over the regularisation strength
+double cross(const dataset *d, const char *include, double log_sparsity, const double *start, const double *stage1, const options *opt);
+double cross_holder(double log_sparsity, void *params);
 double kl_holder(double log_sparsity, void *params);
-double minimize_kl_true(cross_val *cv);
+double search_lambda(double (*f)(double, void *), void *params, int verbose, int extend_low, int *at_boundary);
 
+// entropy
 typedef struct {
-	int n;	// number of states
-	double *p; // list of probabilities
-	double norm; // overall normalization
-	double holder; // useful holder
-	double k; // total number of bins
-	double kappa; // Eq 6 in NSB paper
-	gsl_ran_discrete_t *pre_proc; // the pre-processor for fast number generation
+	int n;         // number of observed states
+	double *p;     // counts
+	double norm;   // total count (set negative to have it recomputed)
+	double holder;
 } prob;
-
-typedef struct {
-	int n;	// number of states for process I
-	int m; // number of states for process II
-	
-	double **p; // list of probabilities
-	double holder; // useful holder
-	double norm; // overall normalization
-	gsl_ran_discrete_t *pre_proc; // the pre-processor for fast number generation
-} j_prob;
 double entropy_nsb(prob *p);
 
+void die(const char *fmt, ...);
+void *xmalloc(size_t bytes);
+void *xcalloc(size_t count, size_t size);
+
+#endif

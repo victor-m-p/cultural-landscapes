@@ -1,43 +1,145 @@
 # General notes
 
-Some of this code is compute intensive; on a Mac M1 with 10 cores, for example, it takes a few seconds to fit n=20 with a few hundred observations, and a few minutes to do the same with Cross Validation.
+`mpf` fits an Ising model (pairwise couplings `J`, local fields `h`) to binary data with Minimum
+Probability Flow, with L2 regularisation chosen by leave-one-out cross-validation, per-row weights, and
+missing entries ("Partial-MPF").
 
-# Implementation
+The code was revised after publication; **`CLAUDE_IMPROVEMENTS_SUMMARY.md` at the top of the repository
+describes every change, the errors found, and which of them affect the paper**. In short: the results in
+the paper are reproduced by `--legacy`; the default treats missing data differently (see "Missing data" below).
 
-MPF has seven different modes:
+A cross-validated fit of the DRH data (n=20, 455 rows, up to 5 missing entries per row) takes one to three
+minutes on a laptop, depending on the options; a fit at a fixed lambda takes a few hundredths of a second.
 
-// mpf -l [filename] [logsparsity] [NN] // load in data, fit
+# Building
 
-Given a data file, a log-sparsity choice, and a specification of \mathcal{N}_i, produces a parameter fit file. e.g.,
+Needs GSL, and a compiler with OpenMP if you want the cross-validation folds to run in parallel.
 
-./mpf -l test.dat 1.0 1
+```
+make                                    # gcc + OpenMP (Linux, PSC after `module load gcc`)
+make CC=/opt/local/bin/clang-mp-19      # Mac: Apple's clang has no OpenMP; use a MacPorts/Homebrew clang
+make OPENMP=                            # any C compiler, single-threaded
+make test                               # unit tests + command-line tests (about a minute)
+```
 
-will fit using a lambda equal to 10^1.0, and the \mathcal{N}_1 strategy.
+# Data format
 
-// mpf -c [filename] [NN] // load in data, fit, using cross-validation to pick best sparsity
+```
+3            <- number of rows
+4            <- number of nodes (questions)
+0101 1.0     <- one row: n characters (0 = no, 1 = yes, X = missing), then a weight
+1X10 1.0
+0011 0.5
+```
 
-The same as above, but does cross-validation to find the best value of lambda.
+Identical rows are merged (their weights add). If the file contains more rows than the header says, only
+the first ones are used. Up to 62 nodes and 20 missing entries per row are supported.
 
-// mpf -g [filename] [n_nodes] [n_obs] [beta] // generate data, save both parameters and data to files
+# Modes
 
-Generates a simulated dataset, with n_nodes nodes, and n_obs observations, with J and h drawn from a Gaussian with RMS equal to beta.
+`NN` selects the neighbourhood: flows go from each data state to every state within Hamming distance
+`NN` — 1 is single flips (the paper's main results), 2 adds every pair of flips, 3 every triple, up to 6.
+The cost per state grows with the number of such neighbours (20, 210, 1350, ... for 20 nodes), and the
+penalty is scaled by that number, as in the published code. With missing entries, only observed entries are
+flipped (except by `--frozen` with `NN > 1`; see "Missing data" below).
+Parameter files hold the n(n-1)/2 couplings in the order (0,1), (0,2), ..., (1,2), ... followed by the n
+fields; the model is p(s) proportional to exp(sum J_ab s_a s_b + sum h_a s_a) with s = +1 (yes) / -1 (no).
 
-// mpf -t [filename] [paramfile] [NN] // load in test data, fit, get KL divergence from truth
+`mpf -l [filename] [logsparsity] [NN]`
+Fit at a fixed regularisation strength lambda = 10^logsparsity; writes `[filename]_params.dat`.
+(The penalty is lambda * n * (sum of weights) / (number of parameters) * sum(theta^2) / 2.)
 
-If you know the true parameters (e.g., because you previously ran mpf -g), this will fit data, and tell you how well you did.
+`mpf -c [filename] [NN]`
+Choose lambda by leave-one-out cross-validation, then fit; writes `[filename]_params.dat`. If some rows
+have missing entries, lambda is first chosen (and a fit made) on the complete rows only, and that fit is
+the starting point for the second stage on all rows. Only rows without missing entries are held out, and
+each is scored by its exact log-likelihood (n <= 24) or its log pseudo-likelihood (larger n). Each fold
+repeats the same two stages on its own training rows, so the held-out row cannot influence its own fold
+through the starting point. lambda is searched on a grid over log10(lambda) in [-2, 4], extended downwards
+(to -8) while the score keeps improving, then refined by golden section around the best grid point. A fit
+that fails numerically makes that lambda invalid; fits that do not converge are reported on stderr.
 
-// mpf -o [filename_prefix] [NN] // load in data (_data.dat suffix), find best lambda using _params.dat to determine KL
+`mpf -g [filename] [n_nodes] [n_obs] [beta]`
+Draw J and h from a Gaussian with standard deviation beta and generate data; writes
+`[filename]_params.dat` and `[filename]_data.dat`. For n <= 24 the data are exact, independent draws;
+for larger n a Monte Carlo sampler is used (see the warning it prints).
 
-If you know the true parameters, this will tell you the secret best value of lambda.
+`mpf -t [filename] [paramfile] [NN]`
+Cross-validated fit, then the KL divergence of the fit from the true parameters in `paramfile`.
 
-// mpf -k [filename] [paramfile_truth] [paramfile_inferred] // load data, compare truth to inferred
+`mpf -o [filename_prefix] [NN]`
+For simulated data (`_data.dat` and `_params.dat`): the best lambda judged by KL from the truth, the
+cross-validated lambda, and the KL of each (and of the unregularised fit) from the truth.
 
-If you have previously fit some data, but you also know the true parameters, this will tell you how well you did.
+`mpf -k [filename] [paramfile_truth] [paramfile_inferred]`
+KL divergence (nats) of the inferred distribution from the true one. n <= 30.
 
-// mpf -z [paramfile] [n_nodes]  // print out probabilities of all configurations under paramfile
+`mpf -z [paramfile] [n_nodes]`
+Write every configuration, its energy and its probability to `[paramfile]_probs.dat`. n <= 30.
 
-If you have a parameter file, this will print out all the configurations, the energy for each config, and the probability.
+# Options
 
+| option | meaning |
+|---|---|
+| `--marginal` | (default) missing data handled by MPF on the marginal distribution of the observed nodes |
+| `--frozen` | missing data handled by freezing the completion weights while minimising, re-estimating them, and iterating to a fixed point (about three times slower) |
+| `--legacy` | reproduce the published fits: the original Partial-MPF objective; cross-validation that counts every held-out row equally regardless of its weight and starts every fold from the full-data fit; lambda confined to [-2, 4] |
+| `--legacy-cv` | only the cross-validation half of `--legacy` |
+| `--groups FILE` | one integer per data row; rows with the same id (e.g. the expansions of one inconsistently-coded entry) are held out together |
+| `--start FILE` | (`-l`) starting parameters |
+| `--seed N` | (`-g`) seed, for reproducible simulated data |
+| `--mcmc` | (`-g`) force the Monte Carlo sampler used for the published simulations |
+| `--verbose` | print every cross-validation evaluation |
+
+# Missing data: what each option assumes
+
+All three options expand a row with m missing entries into its 2^m completions and use flows along the
+observed entries only. They differ in how the completions are combined, and in what has to be true about
+*why* entries are missing for the method to converge on the right answer as data accumulate
+(derivations and tests in `CLAUDE_IMPROVEMENTS_SUMMARY.md`; unit tests in `tests/test_mpf.c`):
+
+| option | what is minimised | consistent if entries are missing... |
+|---|---|---|
+| `--marginal` | a single objective: MPF on the marginal distribution of the observed entries | **completely at random** (the pattern of blanks is unrelated to any answer) |
+| `--frozen` | no single objective: the fixed point of "weights frozen, flows minimised, weights re-estimated" | **at random** (the pattern may depend on answers that are observed in that row) |
+| `--legacy` | the published Partial-MPF objective | neither (biased even when blanks are completely at random) |
+
+With `NN > 1`, `--frozen` also sends flows to neighbours that flip a missing entry together with an
+observed one (weighted by the frozen completion weights). That is what keeps its "at random" guarantee
+for larger neighbourhoods; `--marginal` and `--legacy` flip observed entries only.
+
+None of them is correct if whether an answer is missing depends on that answer itself, and none is convex
+when entries are missing: the result is a local solution, found from the complete-rows fit. If the
+blanks in your data plausibly depend on other answers (for example, cultures known only archaeologically
+lack answers about belief), `--frozen` is the better-justified choice, and comparing it with `--marginal`
+is a useful check.
+
+To reproduce the parameter file used in the paper:
+
+```
+./mpf -c ../data/mdl_experiments/matrix_questions_20_maxna_5_nrows_455_entries_407.txt.mpf 1 --legacy
+```
+
+(this overwrites the `_params.dat` next to the data file with a result that agrees with the committed
+one to about 7e-4; `-l [file] 0.205745 1 --legacy` agrees to 2e-6. `validation/results/drh_refits/refit.sh`
+does the same on a copy.)
+
+# Layout
+
+* `mpf.c` data handling, the objective and its gradient, the L-BFGS minimiser
+* `mcmc.c` exact enumeration (partition function, KL, probabilities), exact and Monte Carlo sampling
+* `nlin.c` cross-validation and the search over lambda
+* `nsb.c` entropy estimate for the diagnostic output of `-o`
+* `main.c` command line
+* `tests/` unit and command-line tests (`make test`)
+* `validation/` the experiments behind `CLAUDE_IMPROVEMENTS_SUMMARY.md`, and their outputs
+* `*.rb`, `*.pro` the scripts used on the Pittsburgh Supercomputing Center for the paper, kept for the
+  record. They were written for the published version of `mpf`: run against the current one they use its
+  new defaults (marginal objective, training-rows-only weighted cross-validation, exact sampling, real
+  multi-flip neighbours for NN > 1). To repeat the published procedure add `--legacy` to their
+  `-c`/`-o`/`-t`/`-l` calls and `--mcmc` to their `-g` calls, and use NN=1; each script that calls `mpf`
+  carries a note saying so. Three of them (`best_fit_DRH_2.rb`, `cv_scan.rb`, `param_scan.rb`) also call
+  `-c` and `-t` with an argument order from an earlier version of the program and will not run as they are.
 
 # final parameter fits
 

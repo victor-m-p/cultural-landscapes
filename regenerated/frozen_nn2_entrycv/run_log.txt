@@ -1,0 +1,17 @@
+parameters: MPF_CMU/validation/results/drh_refits/drh_frozen_entrycv_nn2.mpf_params.dat
+python 3.10.22 numpy 1.21.3 pandas 1.5.2 scikit-learn 1.2.0 scipy 1.10.1 matplotlib 3.6.2 networkx 2.8.8
+ok     preprocessing/prep_early.py
+ok     preprocessing/expand_data.py
+ok     preprocessing/prep_late.py
+ok     analysis/fig_3_parameters.py
+ok     analysis/fig_A1_dendrogram.py
+ok     analysis/prep_fig_4_landscape.py
+ok     analysis/fig_4_landscape.py
+ok     analysis/fig_4_methodist.py
+ok     analysis/fig_4_roman.py
+ok     analysis/table_4_spartans.py
+ok     analysis/table_5_annotations.py
+ok     analysis/table_A1_questions.py
+ok     analysis/table_A2_clades.py
+ok     analysis/table_A3_and_A4_entries.py
+ok     analysis/table_community_weight.py

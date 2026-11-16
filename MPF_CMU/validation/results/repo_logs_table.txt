@@ -1,0 +1,6 @@
+519 trials in the committed logs (n=20, 5 missing); mean KL from truth
+regime             N  128 full   Partial     naive  256 full
+dispersed        148     0.216     0.175     0.237     0.155
+ordered           77     0.571     0.405     0.559     0.339
+near-critical    122     0.657     0.449     0.815     0.433
+critical         172     0.586     0.396     1.062     0.415

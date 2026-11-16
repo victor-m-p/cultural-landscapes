@@ -12,17 +12,20 @@ entry_reference = pd.read_csv('../data/preprocessing/entry_reference.csv')
 config_entry_overlap = pd.read_csv('../data/analysis/top_configurations_overlap.csv')
 
 # table A3 
-new_groups = {
-    'Group 1': 'Group 1', # red
-    'Group 2': 'Group 2.2', # dark blue
-    'Group 3': 'Group 2.1', # light blue
-    'Group 4': 'Group 3.2', # dark yellow
-    'Group 5': 'Group 3.1'} # light yellow
+# label each dendrogram cluster by its top-level group and, where a group holds several clusters,
+# a sub-index (for the published fit: Group 1, Group 2.2, Group 2.1, Group 3.2, Group 3.1)
+# (keyed by group and cluster: a cluster normally lies inside one group, but the two come from different
+# cuts of the tree, so this is not assumed; clusters are ordered by their number, not as text)
+new_groups = {}
+for group, clusters in network_information.groupby('recode_comm')['comm_label'].unique().items():
+    clusters = sorted(clusters, key = lambda c: int(c.split()[-1]), reverse = True)
+    for i, cluster in enumerate(clusters):
+        new_groups[(group, cluster)] = group if len(clusters) == 1 else f'{group}.{i+1}'
 
-sub_network = network_information[['config_id', 'comm_label']]
+sub_network = network_information[['config_id', 'comm_label', 'recode_comm']]
 config_entry_comm = (config_entry_overlap
                      .merge(sub_network)
-                     .groupby(['comm_label', 'entry_id', 'node_id'])['entry_prob']
+                     .groupby(['comm_label', 'recode_comm', 'entry_id', 'node_id'])['entry_prob']
                      .sum()
                      .reset_index()
                      .sort_values('entry_prob', ascending=False)
@@ -30,7 +33,7 @@ config_entry_comm = (config_entry_overlap
                      .merge(entry_reference, on='entry_id', how='inner')
                      .assign(node_id=lambda x: x['node_id'] + 1,
                              entry_prob=lambda x: round(x['entry_prob']*100, 2),
-                             comm_label=lambda x: x['comm_label'].map(new_groups))
+                             comm_label=lambda x: [new_groups[k] for k in zip(x['recode_comm'], x['comm_label'])])
                      .sort_values(['comm_label', 'node_id', 'entry_prob', 'entry_id'],
                                   ascending=[True, True, False, True]))
 config_entry_comm = config_entry_comm[['comm_label', 'node_id', 'entry_id', 'entry_name', 'entry_prob']]

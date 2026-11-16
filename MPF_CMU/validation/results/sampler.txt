@@ -1,0 +1,22 @@
+beta=0.10 seed=1 Monte Carlo <H> exact=   1.998 sample=   2.026 z=  +1.3   top-10 states: exact mass=0.0012 sample=0.0018 z=  +1.0
+beta=0.10 seed=1 exact       <H> exact=   1.998 sample=   1.991 z=  -0.3   top-10 states: exact mass=0.0012 sample=0.0005 z=  -1.3
+beta=0.20 seed=1 Monte Carlo <H> exact=   7.156 sample=   7.148 z=  -0.2   top-10 states: exact mass=0.0255 sample=0.0265 z=  +0.4
+beta=0.20 seed=1 exact       <H> exact=   7.156 sample=   7.157 z=  +0.0   top-10 states: exact mass=0.0255 sample=0.0260 z=  +0.2
+beta=0.35 seed=1 Monte Carlo <H> exact=  17.644 sample=  17.686 z=  +0.9   top-10 states: exact mass=0.2669 sample=0.2712 z=  +0.6
+beta=0.35 seed=1 exact       <H> exact=  17.644 sample=  17.559 z=  -1.8   top-10 states: exact mass=0.2669 sample=0.2440 z=  -3.3
+beta=0.50 seed=1 Monte Carlo <H> exact=  28.782 sample=  28.801 z=  +0.4   top-10 states: exact mass=0.6502 sample=0.6560 z=  +0.8
+beta=0.50 seed=1 exact       <H> exact=  28.782 sample=  28.789 z=  +0.2   top-10 states: exact mass=0.6502 sample=0.6465 z=  -0.5
+beta=0.50 seed=2 Monte Carlo <H> exact=  25.360 sample=  25.335 z=  -0.7   top-10 states: exact mass=0.2774 sample=0.2775 z=  +0.0
+beta=0.50 seed=2 exact       <H> exact=  25.360 sample=  25.361 z=  +0.0   top-10 states: exact mass=0.2774 sample=0.2735 z=  -0.6
+beta=0.50 seed=3 Monte Carlo <H> exact=  27.885 sample=  27.925 z=  +1.1   top-10 states: exact mass=0.4324 sample=0.4460 z=  +1.7
+beta=0.50 seed=3 exact       <H> exact=  27.885 sample=  27.859 z=  -0.7   top-10 states: exact mass=0.4324 sample=0.4360 z=  +0.5
+beta=0.75 seed=1 Monte Carlo <H> exact=  46.139 sample=  45.766 z= -11.8   top-10 states: exact mass=0.9382 sample=0.9002 z= -10.0
+beta=0.75 seed=1 exact       <H> exact=  46.139 sample=  46.160 z=  +0.7   top-10 states: exact mass=0.9382 sample=0.9370 z=  -0.3
+beta=0.75 seed=2 Monte Carlo <H> exact=  40.404 sample=  40.232 z=  -5.1   top-10 states: exact mass=0.5914 sample=0.5590 z=  -4.2
+beta=0.75 seed=2 exact       <H> exact=  40.404 sample=  40.429 z=  +0.7   top-10 states: exact mass=0.5914 sample=0.6008 z=  +1.2
+beta=0.75 seed=3 Monte Carlo <H> exact=  43.955 sample=  43.854 z=  -3.5   top-10 states: exact mass=0.7437 sample=0.7325 z=  -1.6
+beta=0.75 seed=3 exact       <H> exact=  43.955 sample=  43.978 z=  +0.8   top-10 states: exact mass=0.7437 sample=0.7508 z=  +1.0
+beta=1.00 seed=1 Monte Carlo <H> exact=  62.495 sample=  61.015 z= -67.6   top-10 states: exact mass=0.9902 sample=0.9042 z= -55.1
+beta=1.00 seed=1 exact       <H> exact=  62.495 sample=  62.512 z=  +0.8   top-10 states: exact mass=0.9902 sample=0.9918 z=  +1.0
+beta=1.00 seed=2 Monte Carlo <H> exact=  55.375 sample=  54.952 z= -13.0   top-10 states: exact mass=0.8146 sample=0.7308 z= -13.6
+beta=1.00 seed=2 exact       <H> exact=  55.375 sample=  55.364 z=  -0.3   top-10 states: exact mass=0.8146 sample=0.8113 z=  -0.5

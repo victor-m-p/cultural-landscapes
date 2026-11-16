@@ -14,6 +14,11 @@
 * ```table_A5_annotations.py``` creates Table A5 (although slightly different).
 * ```table_community_weight.py``` creates table of community weight (numbers, not table used in article)
 
+## Regenerating everything
+* ```regenerate.py PARAMS_FILE OUTPUT_DIR``` runs the whole pipeline (preprocessing, then all figures and tables) from a parameter file, in a temporary copy, without touching the committed outputs. With the pinned versions in ```requirements.txt``` and the published parameters it reproduces the committed tables exactly.
+* ```compare_regenerated.py DIR_A DIR_B``` compares two regenerated analyses (parameters, top configurations, groups, tables, focal landscapes).
+* See ```/regenerated``` for the published fit and the revised fit side by side.
+
 ## Contact
 Victor M. Poulsen 
 * Twitter: [@vic_moeller](https://twitter.com/vic_moeller) 

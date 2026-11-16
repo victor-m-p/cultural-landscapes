@@ -10,3 +10,9 @@ MPF_CMU/mpf_AMD
 MPF_CMU/PLOTS/*eps
 MPF_CMU/TEST/*
 MPF_CMU/TEST_COMP/*
+MPF_CMU/tests/test_mpf
+MPF_CMU/validation/results/drh_refits/*.mpf
+MPF_CMU/validation/__pycache__/
+__pycache__/
+*.pyc
+*.dSYM/

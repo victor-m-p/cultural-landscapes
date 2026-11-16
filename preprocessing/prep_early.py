@@ -17,6 +17,9 @@ n_entries = 407
 
 # question reference 
 question_reference = pd.read_csv(f'../data/reference/question_reference_questions_{n_nodes}_maxna_{n_nan}_nrows_{n_rows}_entries_{n_entries}.csv')
+# the committed reference file was written before the curation code was refactored and uses the
+# older column names; accept both
+question_reference = question_reference.rename(columns = {'question_id': 'question_id_drh', 'question_name': 'question_drh'})
 
 ## question short-hands
 question_shorthand = {

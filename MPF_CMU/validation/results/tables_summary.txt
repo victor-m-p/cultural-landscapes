@@ -1,0 +1,19 @@
+Table 1 (n=20, 128 observations): mean KL from truth ± standard error; paper: optimal / CV / standard MPF = 0.22/0.23/1.2, 0.55/0.56/2.3, 0.62/0.63/19.4, 0.50/0.54/9.5
+  published Monte Carlo sampler (160 trials)
+    regime           N       optimal            CV  unregularised (mean)  (median)   CV - optimal
+    dispersed       40   0.209±0.023   0.215±0.023                  1.17      1.17   +0.006±0.001
+    ordered         40   0.557±0.011   0.564±0.011                  2.03      1.79   +0.008±0.002
+    near-critical   40   0.609±0.021   0.619±0.021               1151.40     86.07   +0.011±0.003
+    critical        40   0.476±0.059   0.504±0.059               1044.96    209.37   +0.029±0.007
+  exact sampling (160 trials)
+    regime           N       optimal            CV  unregularised (mean)  (median)   CV - optimal
+    dispersed       40   0.207±0.022   0.212±0.022                  1.18      1.18   +0.005±0.001
+    ordered         40   0.560±0.012   0.564±0.012                  4.36      1.70   +0.005±0.001
+    near-critical   40   0.621±0.025   0.631±0.026                408.60    103.41   +0.011±0.004
+    critical        40   0.522±0.057   0.538±0.057                655.18    199.98   +0.016±0.006
+Table 2 (re-weighting; exact sampling; 80 trials): paper: ideal / corrected / naive KL = 0.13/0.16/0.16, 0.34/0.45/0.46, 0.43/0.55/0.60, 0.48/0.57/0.71; bias corrected / naive = -0.2%/-14%, -0.1%/-40%, 9.6%/-51%, 0.1%/-65%
+    regime           N  ideal KL  corrected    naive  bias corrected  bias naive
+    dispersed       20      0.13       0.16     0.16           -0.1%      -14.5%
+    ordered         20      0.34       0.45     0.46            2.2%      -39.1%
+    near-critical   20      0.46       0.60     0.63           15.0%      -48.6%
+    critical        20      0.50       0.64     0.73            7.6%      -59.3%

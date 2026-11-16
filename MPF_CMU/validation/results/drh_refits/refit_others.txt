@@ -1,0 +1,4 @@
+legacy: Best log_sparsity: 0.207018  Wall time: 19.762 seconds.  warnings: 0
+marginal: Best log_sparsity: 0.169750  Wall time: 25.608 seconds.  warnings: 0
+marginal_entrycv: Best log_sparsity: 0.195048  Wall time: 22.117 seconds.  warnings: 0
+legacy_nn2: Best log_sparsity: 0.258001  Wall time: 70.240 seconds.  warnings: 0

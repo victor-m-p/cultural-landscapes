@@ -98,42 +98,43 @@ network_color = network_information[['config_id', 'comm_color_code', 'node_id']]
 annotations = annotations.merge(network_color, on = 'config_id', how = 'inner')
 annotations.sort_values(['comm_color_code', 'node_id'])
 
-## now nudge the position of labels 
+## now nudge the position of labels (keyed by configuration, so that the offsets follow the
+## configuration whatever its rank; chosen by hand for the layout of the published fit)
 pos_annot = {
     # first community 
-    3: (-700, 0), # Jehovah
-    16: (-750, 0), # Free Methodist
-    35: (-650, 20), # Southern Baptists
-    43: (-500, 0), # Messalians
-    45: (-500, 0), # Valentinians
-    54: (-400, -100), # Pythagoreanism
-    108: (-450, -50), # Peyote
+    362374: (-700, 0), # Jehovah
+    362368: (-750, 0), # Free Methodist
+    362370: (-650, 20), # Southern Baptists
+    361984: (-500, 0), # Messalians
+    362246: (-500, 0), # Valentinians
+    385536: (-400, -100), # Pythagoreanism
+    360960: (-450, -50), # Peyote
     # next community 
-    7: (-900, 0), # Muslims UAE
-    23: (570, 200), # German Protestant
-    36: (-850, 50), # Church of England
-    53: (450, 200), # Tallensi
-    57: (-650, -150), # Catholics in PRC
+    1025922: (-900, 0), # Muslims UAE
+    1025920: (570, 200), # German Protestant
+    1017730: (-850, 50), # Church of England
+    632710: (450, 200), # Tallensi
+    501634: (-650, -150), # Catholics in PRC
     # next community 
-    75: (200, 0), # Trumai
-    79: (200, 0), # Sokoto
-    91: (200, 0), # Hidatsa
-    138: (200, 0), # Wogeo
+    634496: (200, 0), # Trumai
+    1025538: (200, 0), # Sokoto
+    634370: (200, 0), # Hidatsa
+    1041926: (200, 0), # Wogeo
     # next community 
-    0: (-500, -200), # Cistercians
-    1: (400, -40), # Ancient Egypt
-    2: (450, -50), # Jesuits
-    4: (-500, -200), # Islam Aceh 
-    5: (200, 0), # Pre-Christian Ireland
-    8: (500, -40), # Vaisnava
-    6: (-500, -200), # Yiguan Dao
-    10: (-750, -250), # The Essenes
-    11: (-700, 60), # Calvinism
+    1025926: (-500, -200), # Cistercians
+    1027975: (400, -40), # Ancient Egypt
+    1027974: (450, -50), # Jesuits
+    1025927: (-500, -200), # Islam Aceh 
+    1044359: (200, 0), # Pre-Christian Ireland
+    1044358: (500, -40), # Vaisnava
+    1017734: (-500, -200), # Yiguan Dao
+    894854: (-750, -250), # The Essenes
+    886662: (-700, 60), # Calvinism
     # next community 
-    9: (400, 30), # Tsonga
-    12: (230, 0), # Mesopotamia
-    19: (200, -20), # Luguru
-    24: (200, 50) # Roman Imperial
+    634758: (400, 30), # Tsonga
+    769926: (230, 0), # Mesopotamia
+    638854: (200, -20), # Luguru
+    769927: (200, 50) # Roman Imperial
 }
 
 # create network
@@ -201,7 +202,7 @@ for index, row in annotations.iterrows():
     node_idx = row['node_id']
     name = row['entry_name']
     pos_x, pos_y = pos[node_idx]
-    xx, yy = pos_annot.get(node_idx)
+    xx, yy = pos_annot.get(row['config_id'], (200, 0))
     color_code = row['comm_color_code']
     ax.annotate(name, xy = [pos_x, pos_y],
                 color = color_code,
@@ -213,14 +214,15 @@ plt.subplots_adjust(left=0.15, right=0.8, top=1, bottom=0)
 plt.savefig('../fig/pdf/landscape_dendrogram_labels.pdf', bbox_inches = 'tight')
 plt.savefig('../fig/svg/landscape_dendrogram_labels.svg', bbox_inches = 'tight')
 
-# recode communities and save overview csv of network information
-recode_comm = {'Group 1': 'Group 1',
-               'Group 2': 'Group 2',
-               'Group 3': 'Group 2',
-               'Group 4': 'Group 3',
-               'Group 5': 'Group 3'}
-
-network_information['recode_comm'] = [recode_comm.get(x) for x in network_information['comm_label']]
+# the three top-level groups of the dendrogram, numbered by total probability mass (Group 1 is the
+# heaviest). For the published fit this is the grouping that used to be written out by hand here
+# (Group 1; Groups 2 and 3 together; Groups 4 and 5 together).
+clades = pd.read_csv('../data/analysis/dendrogram_clades.csv')
+network_information = network_information.merge(clades, on = 'node_id', how = 'inner')
+clade_weight = network_information.groupby('node_clade')['config_prob'].sum().sort_values(ascending = False)
+recode_comm = {clade: f'Group {i+1}' for i, clade in enumerate(clade_weight.index)}
+network_information['recode_comm'] = [recode_comm.get(x) for x in network_information['node_clade']]
+network_information = network_information.drop(columns = 'node_clade')
 network_information.to_csv('../data/analysis/network_information.csv', index = False)
 
 # save annotation information

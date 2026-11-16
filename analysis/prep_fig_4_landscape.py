@@ -40,9 +40,10 @@ maxlikelihood_datastate = maxlikelihood_datastate.merge(config_entry_overlap, on
 maxlikelihood_datastate = maxlikelihood_datastate.merge(datastate_entry_weight, on="node_id", how="inner")
 
 # break ties between maximum likelihood datastates for each configuration (node)
-maxlikelihood_sample = (maxlikelihood_datastate
-                        .groupby('node_id')
-                        .apply(lambda x: x.sample(n=1, random_state=421))
+# one row per node, sampled group by group with the same seed. (Written as an explicit loop because
+# groupby(...).apply(...) drops the grouping column in recent pandas; the draws are the same.)
+maxlikelihood_sample = (pd.concat([group.sample(n=1, random_state=421)
+                                   for _, group in maxlikelihood_datastate.groupby('node_id')])
                         .reset_index(drop=True)).drop(columns='config_prob')
 network_information = (top_config_info
                        .merge(maxlikelihood_sample,

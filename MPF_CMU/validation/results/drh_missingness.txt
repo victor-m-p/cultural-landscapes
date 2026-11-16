@@ -1,0 +1,39 @@
+407 entries; 226 have at least one missing answer; 550 missing answers in all
+missing answers per question: Official political=11, Scriptures=12, Monumental religio=18, Spirit-body distin=16, Belief in afterlif=11, Reincarnation in t=16, Special treatment =32, Co-sacrifices in t=39, Grave goods=60, Formal burials=51, Supernatural being=3, Supernatural monit=36, Supernatural being=36, Castration require=13, Adult sacrifice re=6, Child sacrifice re=11, Suicide required=11, Small-scale ritual=80, Large-scale ritual=40, Distinct written l=48
+
+1. 'yes' rate of each question: complete entries vs entries with a blank in some OTHER question
+   Scriptures                         complete-elsewhere  0.89 (n=180)   blank-elsewhere  0.53 (n=212)   p = 1.1e-15
+   Grave goods                        complete-elsewhere  0.34 (n=180)   blank-elsewhere  0.60 (n=165)   p = 1.7e-06
+   Co-sacrifices in tomb/burial       complete-elsewhere  0.09 (n=181)   blank-elsewhere  0.23 (n=184)   p = 5.7e-04
+   Official political support         complete-elsewhere  0.53 (n=179)   blank-elsewhere  0.68 (n=214)   p = 1.8e-03
+   Special treatment for corpses      complete-elsewhere  0.65 (n=181)   blank-elsewhere  0.79 (n=194)   p = 2.6e-03
+   Monumental religious architecture  complete-elsewhere  0.65 (n=181)   blank-elsewhere  0.51 (n=207)   p = 1.0e-02
+   Adult sacrifice required           complete-elsewhere  0.02 (n=181)   blank-elsewhere  0.06 (n=219)   p = 2.4e-02
+   Supernatural monitoring present    complete-elsewhere  0.82 (n=180)   blank-elsewhere  0.72 (n=190)   p = 2.6e-02
+   Formal burials                     complete-elsewhere  0.77 (n=180)   blank-elsewhere  0.85 (n=175)   p = 8.2e-02
+   Large-scale rituals required       complete-elsewhere  0.71 (n=180)   blank-elsewhere  0.78 (n=184)   p = 1.5e-01
+   Belief in afterlife                complete-elsewhere  0.96 (n=179)   blank-elsewhere  0.98 (n=213)   p = 1.5e-01
+   Supernatural beings present        complete-elsewhere  0.95 (n=181)   blank-elsewhere  0.98 (n=220)   p = 1.8e-01
+   Child sacrifice required           complete-elsewhere  0.01 (n=181)   blank-elsewhere  0.03 (n=215)   p = 3.0e-01
+   Castration required                complete-elsewhere  0.01 (n=181)   blank-elsewhere  0.00 (n=212)   p = 4.6e-01
+   Distinct written language          complete-elsewhere  0.27 (n=180)   blank-elsewhere  0.24 (n=177)   p = 4.7e-01
+   Reincarnation in this world        complete-elsewhere  0.37 (n=180)   blank-elsewhere  0.33 (n=210)   p = 5.2e-01
+   Small-scale rituals required       complete-elsewhere  0.63 (n=179)   blank-elsewhere  0.65 (n=144)   p = 8.2e-01
+   Spirit-body distinction            complete-elsewhere  0.96 (n=180)   blank-elsewhere  0.96 (n=210)   p = 1.0e+00
+   Supernatural beings punish         complete-elsewhere  0.78 (n=181)   blank-elsewhere  0.79 (n=190)   p = 1.0e+00
+   Suicide required                   complete-elsewhere  0.02 (n=181)   blank-elsewhere  0.02 (n=215)   p = 1.0e+00
+   4 of 20 questions differ at p < 0.05/20 (Bonferroni)
+
+2. 'question k missing' against the answer to question q, all pairs with at least 10 missing k
+   341 pairs tested; 7 significant at p < 0.05/341; 51 at p < 0.05 (expected by chance: 17)
+   strongest:
+     when 'Distinct written language' is missing (n=43), 'Scriptures' is yes 0.12 of the time, otherwise 0.77   p = 3.3e-17
+     when 'Small-scale rituals required' is missing (n=75), 'Scriptures' is yes 0.31 of the time, otherwise 0.79   p = 3.2e-15
+     when 'Distinct written language' is missing (n=44), 'Monumental religious archite' is yes 0.20 of the time, otherwise 0.62   p = 1.6e-07
+     when 'Large-scale rituals required' is missing (n=35), 'Scriptures' is yes 0.31 of the time, otherwise 0.74   p = 9.3e-07
+     when 'Distinct written language' is missing (n=47), 'Special treatment for corpse' is yes 0.98 of the time, otherwise 0.69   p = 2.6e-06
+     when 'Distinct written language' is missing (n=42), 'Grave goods' is yes 0.79 of the time, otherwise 0.42   p = 9.8e-06
+     when 'Small-scale rituals required' is missing (n=71), 'Special treatment for corpse' is yes 0.90 of the time, otherwise 0.68   p = 1.1e-04
+     when 'Reincarnation in this world' is missing (n=14), 'Scriptures' is yes 0.21 of the time, otherwise 0.72   p = 2.0e-04
+     when 'Supernatural beings punish' is missing (n=25), 'Supernatural monitoring pres' is yes 0.44 of the time, otherwise 0.79   p = 2.1e-04
+     when 'Small-scale rituals required' is missing (n=75), 'Official political support' is yes 0.79 of the time, otherwise 0.57   p = 5.5e-04

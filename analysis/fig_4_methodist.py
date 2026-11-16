@@ -6,6 +6,7 @@ VMP 2022-02-06: clean this, and use as template to clean "seed_methodist".
 
 import pandas as pd 
 import numpy as np 
+import matplotlib
 import matplotlib.pyplot as plt 
 import networkx as nx
 from fun import *
@@ -92,22 +93,34 @@ entryname_annotations = {
     196: 'Pauline Christianity',
 }
 
+# label offsets, keyed by entry (chosen by hand for the layout of the published fit)
 position_annotations = {
-    0: (-110, 400), # Free Meth
-    1: (-75, 200), # Jehova
-    2: (-70, -460), # S. Baptist
-    5: (-60, -270), # Sachchai
-    9: (-105, -550), # Tunisian
-    8: (-145, 390) # Pauline
+    879: (-110, 400), # Free Meth
+    1311: (-75, 200), # Jehova
+    1307: (-70, -460), # S. Baptist
+    953: (-60, -270), # Sachchai
+    1517: (-105, -550), # Tunisian
+    196: (-145, 390), # Pauline
 }
 
 d_annot = (pd.DataFrame.from_dict(entryname_annotations, orient='index', columns=['entry_name_short'])
     .assign(entry_id=lambda x: x.index)
-    .merge(annotations, on=['entry_id'], how='inner')
-    .loc[[0, 1, 2, 3, 5, 8]])
+    .merge(annotations, on=['entry_id'], how='inner'))
+# one label per entry: its most probable configuration among the nodes that an earlier entry in the
+# list has not already taken. (For the published fit this is the selection that used to be written
+# as row numbers: e.g. Pauline Christianity's most probable configuration is the Jehovah's Witnesses
+# node, so it is labelled at its next most probable one.)
+keep, used_nodes = [], set()
+for entry_id in entryname_annotations:
+    candidates = d_annot[(d_annot['entry_id'] == entry_id) & ~d_annot['node_id'].isin(used_nodes)]
+    if len(candidates) > 0:
+        best = candidates['entry_prob'].idxmax()
+        keep.append(best)
+        used_nodes.add(d_annot.loc[best, 'node_id'])
+d_annot = d_annot.loc[keep]
 
 # main plot 
-cmap = plt.cm.get_cmap("Blues") 
+cmap = matplotlib.colormaps["Blues"] # plt.cm.get_cmap was removed in matplotlib 3.9; this form exists from 3.5
 
 fig, ax = plt.subplots(figsize = (6, 4), dpi = 500)
 plt.axis('off')
@@ -131,7 +144,7 @@ for index, row in d_annot.iterrows():
     node_idx = row['node_id']
     name = row['entry_name_short']
     pos_x, pos_y = pos[node_idx]
-    x_nudge, y_nudge = position_annotations.get(node_idx)
+    x_nudge, y_nudge = position_annotations.get(row['entry_id'], (0, 200))
     color = rgb2hex(cmap(0.99))
     ax.annotate(name, xy=[pos_x, pos_y],
                 color=rgba,

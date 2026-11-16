@@ -1,4 +1,9 @@
 #!/usr/bin/ruby
+# NOTE (2026 revision): written for the published version of mpf, whose defaults have since changed
+# (marginal objective for missing data, training-rows-only weighted cross-validation searched below
+# log-sparsity -2, exact sampling in -g for n <= 24, and NN > 1 now really uses multi-flip neighbours;
+# the published code ran NN=1 whatever NN was given). To repeat the published procedure add --legacy
+# to the -c / -o / -t / -l calls and --mcmc to the -g calls, and use NN=1. See README.md.
 # sbatch -N 1 -o NAN_TESTS/new_NAN_TESTS_final_BIG2 -t 48:00:00 -p RM ./test_nans.rb 20 5 NAN_TESTS_FINAL
 # sbatch -N 1 -o NAN_TESTS/new_NAN_TESTS_final -t 00:15:00 -p RM ./test_nans.rb 4 1 NAN_TESTS_FINAL
 

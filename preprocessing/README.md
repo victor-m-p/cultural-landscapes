@@ -3,7 +3,7 @@
 * ```preprocessing.py``` converts ```.json``` obtained from the DRH to ```.csv```.
 * ```curation.py``` runs data subset curation (relies on ```curation_functions.py```. See also ```run_curation.sh```).
 * ```prep_early.py``` creates central dataframes used across the analysis (as well as some of the tables). 
-* ```expand_data.jl``` expands the entries with missing or inconsistent data. 
+* ```expand_data.jl``` expands the entries with missing or inconsistent data (```expand_data.py``` is an equivalent for machines without Julia; ```test_pipeline.py``` checks it against the committed output). 
 * ```prep_late.py``` combines information from ```prep_early.py``` and ```expand_data.jl```.
 
 ## Description

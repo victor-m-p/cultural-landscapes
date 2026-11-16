@@ -1,0 +1,140 @@
+A = frozen_nn2_entrycv
+B = frozen_nn3_entrycv
+
+1. PARAMETERS
+   correlation of couplings 0.9978; of fields 0.9990; largest change in any parameter 0.048
+   the 15 strongest couplings (Figure 3): 15 shared
+
+2. MOST PROBABLE CONFIGURATIONS (Figure 4A)
+   top 150: 145 shared; probability mass A 0.456, B 0.472
+   the 20 most probable in A have ranks in B: [1, 2, 3, 5, 4, 7, 6, 9, 8, 10, 11, 13, 14, 15, 17, 12, 23, 18, 21, 26]
+
+3. GROUPS (dendrogram of the top 150; Figure A1, Tables 5, A2-A4)
+   frozen_nn2_entrycv: 5 clusters at the paper's cut height; three top-level groups:
+                   configurations   mass  clusters
+      recode_comm                                 
+      Group 1                  64  0.241         2
+      Group 2                  51  0.153         2
+      Group 3                  35  0.062         1
+   frozen_nn3_entrycv: 5 clusters at the paper's cut height; three top-level groups:
+                   configurations   mass  clusters
+      recode_comm                                 
+      Group 1                  94  0.351         3
+      Group 2                  31  0.080         1
+      Group 3                  24  0.041         1
+   agreement of the three groups on the 145 shared configurations: adjusted Rand index 0.429
+   frozen_nn3_entrycv  Group 1  Group 2  Group 3
+   frozen_nn2_entrycv                           
+   Group 1                  62        2        0
+   Group 2                  22       27        0
+   Group 3                   6        2       24
+   where the configurations labelled in Figure 4A fall:
+                 entry_name       A              B  rank A  rank B
+                Cistercians Group 1        Group 1       1     1.0
+         Jesuits in Britain Group 1        Group 1       2     2.0
+              Ancient Egypt Group 1        Group 1       3     3.0
+              Islam in Aceh Group 1        Group 1       4     5.0
+        Jehovah's Witnesses Group 1        Group 1       6     7.0
+                 Yiguan Dao Group 1        Group 1       9     8.0
+             Muslims in UAE Group 1        Group 1      10    10.0
+                The Essenes Group 1        Group 1      14    15.0
+                  Calvinism Group 1        Group 1      17    23.0
+          German Protestant Group 1        Group 1      28    28.0
+               Valentinians Group 1        Group 1      50    56.0
+                     Sokoto Group 1        Group 1     120   134.0
+                   Vaisnava Group 2        Group 1       5     4.0
+      Pre-Christian Ireland Group 2        Group 1       7     6.0
+                     Tsonga Group 2        Group 2       8     9.0
+                Mesopotamia Group 2        Group 1      15    17.0
+                     Luguru Group 2        Group 2      21    24.0
+             Roman Imperial Group 2        Group 1      29    30.0
+                   Tallensi Group 2        Group 1      43    43.0
+                     Trumai Group 2        Group 2     109   113.0
+                    Hidatsa Group 2 not in top 150     150     NaN
+             Free Methodist Group 3        Group 3      27    35.0
+          Church of England Group 3        Group 1      46    52.0
+          Southern Baptists Group 3        Group 3      55    72.0
+           Catholics in PRC Group 3        Group 1      56    59.0
+                 Messalians Group 3        Group 3      67    80.0
+             Pythagoreanism Group 3        Group 3      77    87.0
+            Peyote Religion Group 3        Group 3     116   118.0
+
+   table_A2_clades.txt -- frozen_nn2_entrycv:
+      \begin{tabular}{lllrrr}
+      \toprule
+        Group &  Color &                          Question &  Avg. S &  Avg. O &   Diff \\
+      \midrule
+      Group 1 &    Red &                        Scriptures &   95.79 &   53.24 &  42.55 \\
+      Group 1 &    Red &                       Grave goods &   27.36 &   69.08 & -41.72 \\
+      Group 1 &    Red &      Small-scale rituals required &   85.61 &   59.65 &  25.96 \\
+      Group 1 &    Red &      Co-sacrifices in tomb/burial &    0.49 &   25.39 & -24.90 \\
+      Group 1 &    Red &      Large-scale rituals required &   96.33 &   77.17 &  19.16 \\
+      Group 2 &   Blue &                       Grave goods &   95.13 &   22.76 &  72.38 \\
+      Group 2 &   Blue &                        Scriptures &   43.56 &   91.95 & -48.39 \\
+      Group 2 &   Blue &      Co-sacrifices in tomb/burial &   35.70 &    0.39 &  35.32 \\
+      Group 2 &   Blue &     Special treatment for corpses &  100.00 &   68.20 &  31.80 \\
+      Group 2 &   Blue &       Reincarnation in this world &   40.55 &   17.73 &  22.82 \\
+      Group 3 & Yellow &      Small-scale rituals required &    3.08 &   84.45 & -81.37 \\
+      Group 3 & Yellow &      Large-scale rituals required &   32.24 &   95.98 & -63.74 \\
+      Group 3 & Yellow &                       Grave goods &    4.91 &   53.67 & -48.75 \\
+      Group 3 & Yellow & Monumental religious architecture &   23.58 &   69.83 & -46.25 \\
+      Group 3 & Yellow &        Official political support &   29.77 &   72.84 & -43.07 \\
+      \bottomrule
+      \end{tabular}
+
+   table_A2_clades.txt -- frozen_nn3_entrycv:
+      \begin{tabular}{lllrrr}
+      \toprule
+        Group &  Color &                          Question &  Avg. S &  Avg. O &   Diff \\
+      \midrule
+      Group 1 &    Red & Monumental religious architecture &   80.85 &   19.77 &  61.08 \\
+      Group 1 &    Red &                        Scriptures &   91.68 &   31.80 &  59.88 \\
+      Group 1 &    Red &      Small-scale rituals required &   85.97 &   44.11 &  41.86 \\
+      Group 1 &    Red &      Large-scale rituals required &   95.66 &   68.30 &  27.36 \\
+      Group 1 &    Red &                       Grave goods &   43.65 &   64.85 & -21.19 \\
+      Group 2 &   Blue &                        Scriptures &   10.70 &   89.65 & -78.95 \\
+      Group 2 &   Blue &                       Grave goods &   98.55 &   39.06 &  59.49 \\
+      Group 2 &   Blue & Monumental religious architecture &   28.42 &   72.67 & -44.25 \\
+      Group 2 &   Blue &     Special treatment for corpses &  100.00 &   76.25 &  23.75 \\
+      Group 2 &   Blue &         Distinct written language &    9.41 &   23.94 & -14.53 \\
+      Group 3 & Yellow &      Small-scale rituals required &    4.37 &   82.06 & -77.69 \\
+      Group 3 & Yellow & Monumental religious architecture &    3.14 &   71.17 & -68.02 \\
+      Group 3 & Yellow &      Large-scale rituals required &   27.90 &   94.49 & -66.59 \\
+      Group 3 & Yellow &                       Grave goods &    0.00 &   53.79 & -53.79 \\
+      Group 3 & Yellow &        Official political support &   33.21 &   71.95 & -38.73 \\
+      \bottomrule
+      \end{tabular}
+
+   table_community_weight.txt -- frozen_nn2_entrycv:
+      \begin{tabular}{lr}
+      \toprule
+        Group &  Weight \\
+      \midrule
+      Group 1 &   24.11 \\
+      Group 2 &   15.30 \\
+      Group 3 &    6.21 \\
+      \bottomrule
+      \end{tabular}
+
+   table_community_weight.txt -- frozen_nn3_entrycv:
+      \begin{tabular}{lr}
+      \toprule
+        Group &  Weight \\
+      \midrule
+      Group 1 &   35.14 \\
+      Group 2 &    7.96 \\
+      Group 3 &    4.14 \\
+      \bottomrule
+      \end{tabular}
+
+4. ARCHAIC SPARTAN CULTS (Table 4): probability of each completion
+   frozen_nn2_entrycv: ritual & sacrifice 1.0%, no ritual & sacrifice 0.3%, ritual & no sacrifice 72.0%, no ritual & no sacrifice 26.7%
+   frozen_nn3_entrycv: ritual & sacrifice 0.9%, no ritual & sacrifice 0.3%, ritual & no sacrifice 72.1%, no ritual & no sacrifice 26.7%
+
+5. FOCAL LANDSCAPES (Figures 4B, 4C): single-answer changes from the focal configuration
+   Free Methodist Church
+      frozen_nn2_entrycv: p = 0.43%, rank 27; neighbours more probable than it: 0 of 20; most likely changes: Special treatment for corpses -> yes (15%, p ratio 0.60); Large-scale rituals required -> yes (15%, p ratio 0.57); Small-scale rituals required -> yes (12%, p ratio 0.45)
+      frozen_nn3_entrycv: p = 0.36%, rank 35; neighbours more probable than it: 0 of 20; most likely changes: Special treatment for corpses -> yes (16%, p ratio 0.68); Large-scale rituals required -> yes (14%, p ratio 0.57); Small-scale rituals required -> yes (12%, p ratio 0.50)
+   Roman Imperial Cult
+      frozen_nn2_entrycv: p = 0.42%, rank 29; neighbours more probable than it: 2 of 20; most likely changes: Distinct written language -> no (30%, p ratio 1.50); Scriptures -> yes (25%, p ratio 1.23); Co-sacrifices in tomb/burial -> no (15%, p ratio 0.76)
+      frozen_nn3_entrycv: p = 0.42%, rank 30; neighbours more probable than it: 2 of 20; most likely changes: Distinct written language -> no (30%, p ratio 1.52); Scriptures -> yes (27%, p ratio 1.37); Co-sacrifices in tomb/burial -> no (14%, p ratio 0.74)

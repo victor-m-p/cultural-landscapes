@@ -1,0 +1,2 @@
+frozen_entrycv: Best log_sparsity: 0.128537  Wall time: 127.575 seconds.  warnings: 0
+frozen_entrycv_nn2: Best log_sparsity: 0.216335  Wall time: 640.589 seconds.  warnings: 0

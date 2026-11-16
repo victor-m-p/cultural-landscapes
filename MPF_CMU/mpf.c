@@ -1,1011 +1,788 @@
+// Data handling, the MPF objective (with three treatments of missing data), and the minimiser.
+//
+// Conventions (as in the paper): p(s) is proportional to exp(H(s)), with
+//     H(s) = sum_{a<b} J_ab s_a s_b + sum_a h_a s_a,      s_a = +1 / -1.
+// Parameters are stored as the n(n-1)/2 couplings in row-major order (0,1),(0,2),...,(1,2),... followed
+// by the n fields.
+//
+// For a data state s, the flow into the neighbour with bit k flipped is
+//     exp( (H(s^k) - H(s)) / 2 ) = exp( -s_k phi_k ),     phi_k = h_k + sum_j J_kj s_j,
+// so all n neighbours of a state cost O(n^2) in total, and the gradient of each flow touches only the
+// parameters that involve node k.
 #include "mpf.h"
-#include "stdlib.h"
-#define flip(X)  ((X) < 0 ? 1 : -1)
-#define MIN(a,b) ((a)<(b)?(a):(b))
-#define VAL(a, pos) ((a & (1 << pos)) ? 1.0 : -1.0)
-// macros for extracting the pos^th bit from unsigned long int a, and turning it into +1 or -1
-int global_length;
+#include <stdarg.h>
 
-unsigned long int convert(int *list) {
-	int i;
-	unsigned long int ans=0;
-	
-	for(i=0;i<global_length;i++) {
-		if (list[i] > 0) {
-			ans += (1 << i);	
-		}
-	}
-	
-	return ans;
+void die(const char *fmt, ...) {
+	va_list ap;
+	va_start(ap, fmt);
+	fprintf(stderr, "mpf: ");
+	vfprintf(stderr, fmt, ap);
+	fprintf(stderr, "\n");
+	va_end(ap);
+	exit(2);
 }
 
-void print_vec(unsigned long a) {
-	int i;
-	
-	for(i=0;i<global_length;i++) {
-		if (a & (1 << i)) {
-			printf("1");
-		} else {
-			printf("0");
-		}
-	}
+void *xmalloc(size_t bytes) {
+	void *p=malloc(bytes > 0 ? bytes : 1);
+	if (p == NULL) die("out of memory (wanted %zu bytes)", bytes);
+	return p;
 }
 
-int hamming(unsigned long a, unsigned long b) {
-	int i, dist=0;
-	
-	for(i=0;i<global_length;i++) {
-		if ((a & (1 << i)) ^ (b & (1 << i))) {
-			dist++;
-		}
-	}
-	return dist;
+void *xcalloc(size_t count, size_t size) {
+	void *p=calloc(count > 0 ? count : 1, size > 0 ? size : 1);
+	if (p == NULL) die("out of memory (wanted %zu x %zu bytes)", count, size);
+	return p;
 }
 
-int compare_states(const void* va, const void* vb) {
-
-	  unsigned long int a = *(unsigned long int *)va; 
-	  unsigned long int b = *(unsigned long int *) vb;
-	  return a < b ? -1 : a > b ? +1 : 0;	
-}
-
-int compare_states_near(const void* a, const void* b) {
-	unsigned long int va, vb;
-	sample **arg1, **arg2;
- 	
-	va=((near_struct **)a)[0]->config;
- 	vb=((near_struct **)b)[0]->config;
-	
-	return va < vb ? -1 : va > vb ? +1 : 0;	
-}
-
-int compare_states_base(const void* a, const void* b) {
-	int i;
-	sample **arg1, **arg2;
- 	
-	arg1=(sample **)a;
- 	arg2=(sample **)b;
-	
- 	for(i=0;i<global_length;i++) {
- 		if (arg1[0]->config_base[i] > arg2[0]->config_base[i]) return -1;
- 		if (arg1[0]->config_base[i] < arg2[0]->config_base[i]) return 1;		
- 	}
-    return 0;
-}
-
-all *new_data() {
-	FILE *fn; 
-	unsigned long r_seed;
-	all *data;
-	
-	data=(all *)malloc(sizeof(all));
-	
-	data->m=-1;
-	data->n=-1;
-	data->n_prox=-1;
-	data->near_uniq=-1;
-	data->obs_raw=NULL;
-	data->obs=NULL;
-	data->near=NULL;
-	
-	data->n_params=-1;
-	data->big_list=NULL;
-	data->ei=NULL;
-	data->nei=NULL;
-	
-	data->k=-1;
-	data->dk=NULL;
-	data->ij=NULL;
-	data->h_offset=-1;
-	
-	data->best_fit=NULL;
-	
-	gsl_rng *r;
-	
-	
-	fn = fopen("/dev/urandom", "rb");
-	
-	if (fread(&r_seed, sizeof(unsigned long), 1, fn) != 1) {
-		/* Failed!--use time instead; beware, could sync with other instances */
-		printf("Warning: urandom read fail; using system clock\n");
-		r_seed=(unsigned long)time(NULL);
-	}
-	fclose(fn);
-	
-	data->r=gsl_rng_alloc(gsl_rng_taus);
-	gsl_rng_set(data->r, r_seed);
-	
-	return data;
-}
-
-void delete_data(all *data) {
-	int i, j;
-	
-	if (data->near != NULL) {
-		free(data->near);
-	}
-	
-	if (data->obs != NULL) {
-		if (data->uniq > 0) {
-			for(i=0;i<data->uniq;i++) {
-				free(data->obs[i]->config_base);
-				if (data->obs[i]->n_blanks > 0) {
-					free(data->obs[i]->blanks); // location of blanks					
-				}
-				free(data->obs[i]->config);
-				free(data->obs[i]->mult_sim);
-				for(j=0;j<data->obs[i]->n_config;j++) {
-					free(data->obs[i]->prox[j]);
-				}
-				free(data->obs[i]->prox);
-				free(data->obs[i]);
-			}		
-		}
-		free(data->obs);		
-	}
-	
-	if (data->obs_raw != NULL) {
-		for(i=0;i<data->m;i++) {
-			free(data->obs_raw[i]);
-		}
-		free(data->obs_raw);
-	}
-	
-	if (data->big_list != NULL) {
-		free(data->big_list);
-		free(data->ei);
-		free(data->nei);
-		free(data->dk);
-		for(i=0;i<data->n;i++) {
-			free(data->ij[i]);
-		}
-		free(data->ij);
+const char *fit_status_name(int status) {
+	switch(status) {
+		case FIT_CONVERGED: return "converged";
+		case FIT_STALLED: return "stalled before the gradient became small";
+		case FIT_MAXIT: return "reached the iteration limit";
+		default: return "hit a non-finite objective or gradient";
 	}
 }
 
-void read_data(char *filename, all *data) {
-	int i, j, k, count, m, n, pos, count_uniq=0;
-	double running;
-	sample *current;
-	FILE *f_in;
-	char c;
-	
-	f_in=fopen(filename, "r"); // /home/simon/MPF_CMU/test.txt
-	fscanf(f_in, "%i\n", &m); // number of samples
-	fscanf(f_in, "%i\n", &n); // number of nodes
-	data->m=m;
-	data->n=n;
-	global_length=data->n;
-	
-	data->obs_raw=(sample **)malloc(data->m*sizeof(sample *));
-	
-	// first, read in the raw data
-	for(i=0;i<data->m;i++) {
-		data->obs_raw[i]=(sample *)malloc(sizeof(sample));
-		data->obs_raw[i]->config_base=(int *)malloc(data->n*sizeof(int)); // base configuration (-1, +1, 0)
-		data->obs_raw[i]->n_blanks=0;
-		data->obs_raw[i]->blanks=NULL;
-		
+// ---------------------------------------------------------------------------------------------
+// reading and writing
+// ---------------------------------------------------------------------------------------------
+
+// File format: number of rows, number of nodes, then one row per line: a string of n characters from
+// {0, 1, X} (X = missing), whitespace, and a weight. If the file holds more rows than the header says,
+// only the first m are used.
+dataset *read_data(const char *filename) {
+	FILE *f;
+	dataset *d;
+	char *buf, fmt[32];
+	int i, j, m, n;
+	size_t len;
+
+	f=fopen(filename, "r");
+	if (f == NULL) die("cannot open data file '%s'", filename);
+	if (fscanf(f, "%d %d", &m, &n) != 2) die("'%s': expected the number of rows and the number of nodes on the first two lines", filename);
+	if (m < 1) die("'%s': number of rows must be positive (got %d)", filename, m);
+	if (n < 2 || n > MAX_NODES) die("'%s': number of nodes must be between 2 and %d (got %d)", filename, MAX_NODES, n);
+
+	d=(dataset *)xmalloc(sizeof(dataset));
+	d->m=m; d->n=n; d->group=NULL; d->nn=1;
+	d->v=(int8_t *)xmalloc((size_t)m*n*sizeof(int8_t));
+	d->w=(double *)xmalloc(m*sizeof(double));
+	d->n_blanks=(int *)xmalloc(m*sizeof(int));
+
+	buf=(char *)xmalloc(4096);
+	snprintf(fmt, sizeof(fmt), "%%4095s");
+	for(i=0;i<m;i++) {
+		if (fscanf(f, fmt, buf) != 1) die("'%s': header promises %d rows but only %d were found", filename, m, i);
+		len=strlen(buf);
+		if ((int)len != n) die("'%s': row %d has %zu entries, expected %d", filename, i+1, len, n);
+		d->n_blanks[i]=0;
 		for(j=0;j<n;j++) {
-			data->obs_raw[i]->config_base[j]=-100;
-			fscanf(f_in, "%c", &c);
-			if (c == '0') {
-				data->obs_raw[i]->config_base[j]=-1;
-			}
-			if (c == '1') {
-				data->obs_raw[i]->config_base[j]=1;
-			}
-			if (c == 'X') {
-				data->obs_raw[i]->config_base[j]=0;
-				data->obs_raw[i]->blanks = (int *)realloc(data->obs_raw[i]->blanks, (data->obs_raw[i]->n_blanks+1)*sizeof(int));
-				data->obs_raw[i]->blanks[data->obs_raw[i]->n_blanks] = j;
-				data->obs_raw[i]->n_blanks++;
-			}
-			if (data->obs_raw[i]->config_base[j] == -100) {
-				printf("Bad entry for node %i of obs %i; entry was %c\n", j, i, c);
-			}
+			if (buf[j] == '1') d->v[(size_t)i*n+j]=1;
+			else if (buf[j] == '0') d->v[(size_t)i*n+j]=-1;
+			else if (buf[j] == 'X' || buf[j] == 'x') { d->v[(size_t)i*n+j]=0; d->n_blanks[i]++; }
+			else die("'%s': row %d, entry %d is '%c'; expected 0, 1 or X", filename, i+1, j+1, buf[j]);
 		}
-		fscanf(f_in, "%lf", &(data->obs_raw[i]->mult)); // read in multiplicity
-		// data->obs_raw[i]->mult *= (data->n - data->obs_raw[i]->n_blanks)*1.0/data->n; // experiment -- test if downweighting X configs helps
-		fscanf(f_in, "%c", &c);
-		if ((c != '\n') && (i < (m-1))) {
-			printf("Expected an end of line, didn't get one\n");
-		}
+		if (d->n_blanks[i] > MAX_BLANKS) die("'%s': row %d has %d missing entries; at most %d are supported", filename, i+1, d->n_blanks[i], MAX_BLANKS);
+		if (d->n_blanks[i] == n) die("'%s': row %d has no observed entries", filename, i+1);
+		if (fscanf(f, "%lf", &d->w[i]) != 1) die("'%s': row %d has no weight", filename, i+1);
+		if (!(d->w[i] >= 0) || !isfinite(d->w[i])) die("'%s': row %d has an invalid weight", filename, i+1);
 	}
-	fclose(f_in);
-	
+	free(buf);
+	fclose(f);
+	return d;
 }
 
-void process_obs_raw(all *data) {
-	int i, j, k, count, m, n, pos, count_uniq=0;
-	double running;
-	sample *current;
-
-	// assumed we have obs_raw all read in
-	
-	// now, clean this for duplicates...
-	// we are going to sort the obs_raw data, on the basis of the "config_base"
-	qsort(data->obs_raw, data->m, sizeof(sample *), compare_states_base); 
-
-	count_uniq=1;
-	i=1;
-	while(i<(data->m)) {
-		if (compare_states_base(&(data->obs_raw[i]), &(data->obs_raw[i-1])) != 0) {
-			count_uniq++;
-		}
-		i++;
-	}
-	data->uniq=count_uniq;
-
-	// now make the big set...
-	data->obs=(sample **)malloc(data->uniq*sizeof(sample *));
-	for(i=0;i<data->uniq;i++) {
-		data->obs[i]=(sample *)malloc(sizeof(sample));
-		data->obs[i]->config_base=(int *)malloc(data->n*sizeof(int));
-		data->obs[i]->blanks=NULL;
-	}
-	
-	// now we create the new "obs" list -- this is the one we work with...
-	i=0;
-	pos=1;
-	for(j=0;j<data->n;j++) {
-		data->obs[0]->config_base[j]=data->obs_raw[0]->config_base[j];
-	}
-	data->obs[0]->mult = data->obs_raw[0]->mult;
-	data->obs[0]->n_blanks = data->obs_raw[0]->n_blanks;
-	data->obs[0]->blanks=(int *)realloc(data->obs[0]->blanks, data->obs[0]->n_blanks*sizeof(int));
-	for(j=0;j<data->obs[i]->n_blanks;j++) {
-		data->obs[0]->blanks[j]=data->obs_raw[0]->blanks[j];
-	}
-	
-	while(pos<data->m) {		
-		if (compare_states_base(&(data->obs_raw[pos]), &(data->obs_raw[pos-1])) != 0) { // if the current one is different from the previous one then...
-			i++; // increment the counter...
-			for(j=0;j<data->n;j++) {
-				data->obs[i]->config_base[j]=data->obs_raw[pos]->config_base[j];
-			}
-			data->obs[i]->mult = data->obs_raw[pos]->mult;
-			data->obs[i]->n_blanks = data->obs_raw[pos]->n_blanks;
-			data->obs[i]->blanks=NULL;
-			data->obs[i]->blanks=(int *)realloc(data->obs[i]->blanks, data->obs[i]->n_blanks*sizeof(int));
-			for(j=0;j<data->obs[i]->n_blanks;j++) {
-				data->obs[i]->blanks[j]=data->obs_raw[pos]->blanks[j];
-			}
-		} else {
-			data->obs[i]->mult += data->obs_raw[pos]->mult;
-		}
-		pos++;
-	}
-		
-	// now we have to go through for each of the observations in the full list and construct the remainder of the data
-	data->max_config=1;
-	data->n_all=0;
-	for(i=0;i<data->uniq;i++) {
-		current=data->obs[i];
-		current->n_config=(1 << current->n_blanks);
-		if (current->n_config > data->max_config) {
-			data->max_config=current->n_config;
-			data->max_blanks=current->n_blanks;
-		}
-		current->config=(unsigned long int *)malloc(current->n_config*sizeof(unsigned long int));
-		current->mult_sim=(double *)malloc(current->n_config*sizeof(double));
-		current->mult_sim_pointer=(double **)malloc(current->n_config*sizeof(double *));
-		if (current->n_blanks == 0) {
-			current->config[0]=convert(current->config_base);
-			current->mult_sim[0]=1;
-		} else {
-			for(j=0;j<current->n_config;j++) {
-				for(k=0;k<current->n_blanks;k++) {
-					current->config_base[current->blanks[k]] = VAL(j, k);
-				}
-				current->config[j]=convert(current->config_base);
-				current->mult_sim[j]=1.0/(current->n_config);
-				current->mult_sim_pointer[j]=NULL;
-			}
-		}
-
-		for(k=0;k<current->n_blanks;k++) { // just to be careful, we'll reset the config-base
-			current->config_base[current->blanks[k]] = 0;
-		}
-		data->n_all += current->n_config;
-	}
-
-	data->ei=(double *)malloc(data->n_all*sizeof(double));	
-
-	data->h_offset=data->n*(data->n-1)/2;
-	data->n_params=data->n*(data->n-1)/2+data->n;
-
-}
-
-void clear_data(all *data) {
-	int i, j;
-	
-	free(data->big_list);
-	for(i=0;i<data->uniq;i++) {
-		for(j=0;j<data->obs[i]->n_config;j++) {
-			
-		}
-		free(data->obs[i]);	
-	}
-	for(i=0;i<data->uniq;i++) {
-		free(data->obs[i]);	
-	}
-	
-}
-
-void init_params(all *data) {
-	int i, j, d, count;
-	double running;
-	gsl_rng *r;
-	
-	if (data->n_params < 0) {
-		data->n_params=data->n*(data->n+1)/2;
-		data->h_offset=data->n*(data->n-1)/2;
-	}
-	
-	if (data->big_list == NULL) {
-		data->big_list=(double *)malloc(data->n_params*sizeof(double));
-		data->old_list=(double *)malloc(data->n_params*sizeof(double));
-		data->dk=(double *)malloc(data->n_params*sizeof(double));
-		r=data->r;
-		
-		data->ij=(int **)malloc(data->n*sizeof(int *));
-		for(i=0;i<data->n;i++) {
-			data->ij[i]=(int *)malloc(data->n*sizeof(int));
-		}
-		count=0;
-		for(i=0;i<(data->n-1);i++) {
-			for(j=(i+1);j<data->n;j++) {
-				data->ij[i][j]=count;
-				data->ij[j][i]=count;
-				count++;
-			}
-		}
-	}
-
-	if (data->best_fit == NULL) {
-		for(i=0;i<data->n_params;i++) {
-			data->big_list[i]=gsl_ran_gaussian(data->r, 1.0)/100.0; // initiatize for tests
-			data->old_list[i]=0; // initiatize for tests
-		}		
-	} else {
-		for(i=0;i<data->n_params;i++) {
-			data->big_list[i]=data->best_fit[i]; // initiatize for tests
-			data->old_list[i]=0; // initiatize for tests
-		}
-	}
-
-	global_length=data->n;
-}
-
-void create_near(all *data, int n_step) { // creates nearest neighbours, removes duplicates
-	int i, j, temp_k, k, kp, kpp, count, found, pos, num_near, count_uniq, dist, t_count;
-	double running;
-	unsigned long int *near_temp;
-	
-	data->near=NULL;	
-	data->near_set=NULL;
-	
-	data->n_prox=0;
-	if (n_step >= 1) {	
-		data->n_prox += data->n;
-	}
-	// if (n_step >= 2) {
-	// 	data->n_prox += data->n*(data->n-1)/2;
-	// }
-	// if (n_step >= 3) {
-	// 	data->n_prox += data->n*(data->n-1)*(data->n-2)/6;
-	// }
-	
-	for(i=0;i<data->uniq;i++) {
-		data->obs[i]->prox=(int **)malloc(data->obs[i]->n_config*sizeof(int *));
-		for(j=0;j<data->obs[i]->n_config;j++) {
-			data->obs[i]->prox[j]=(int *)malloc((data->n_prox-data->obs[i]->n_blanks)*sizeof(int));
-		}
-	}
-	
-	count=0;
-	if (n_step >= 1) {	
-			
-		for(i=0;i<data->uniq;i++) {
-			
-			for(j=0;j<data->obs[i]->n_config;j++) { // do the total number of configurations here... now if we excluded "neighbours" in the simulated bits, what happens?
-
-				// data->near_set=(near_struct **)realloc(data->near_set, (count+(data->n)*sizeof(near_struct *));
-				data->near_set=(near_struct **)realloc(data->near_set, (count+(data->n-data->obs[i]->n_blanks))*sizeof(near_struct *));
-				temp_k=0;
-				for(k=0;k<data->n;k++) {
-					// little trick -- don't flow into something that you are simulating... let's see what happens to fit quality
-					// hmm -- makes it much worse, it seems
-					found=0;
-					for(kpp=0;kpp<data->obs[i]->n_blanks;kpp++) {
-						if (k == data->obs[i]->blanks[kpp]) {
-							found=1;
-							break;
-						}
-					}
-					if (found == 0) {
-						data->near_set[count]=(near_struct *)malloc(sizeof(near_struct));
-						data->near_set[count]->config=(data->obs[i]->config[j] ^ (1 << k)); // XOR at that bit to flip it
-						data->near_set[count]->data_prox=&(data->obs[i]->prox[j][temp_k]); // pointer to the proximate location
-						count++;						
-						temp_k++;
-					} else {
-						// data->near_set[count]->config=gsl_rng_uniform_int(data->r, (1 << data->n)); // choose randomly!
-					}
-				}				
-			}
-			
-		}
-
-	}
-	
-	// if (n_step >= 2) {
-	//
-	// 	for(i=0;i<data->uniq;i++) {
-	// 		// printf("Datapoint %i has %i configs.\n", i, data->obs[i]->n_config);
-	//
-	// 		for(j=0;j<data->obs[i]->n_config;j++) {
-	//
-	// 			data->near_set=(near_struct **)realloc(data->near_set, (count+data->n*(data->n-1)/2)*sizeof(near_struct *));
-	// 			t_count=0;
-	// 			for(k=0;k<(data->n-1);k++) {
-	// 				for(kp=(k+1);kp<(data->n);kp++) {
-	// 					data->near_set[count]=(near_struct *)malloc(sizeof(near_struct));
-	// 					data->near_set[count]->config=((data->obs[i]->config[j] ^ (1 << k)) ^ (1 << kp)); // XOR at that bit to flip it
-	// 					// printf("Setting %i pointer to %i %i %i\n", count, i, j, data->n+t_count);
-	// 					data->near_set[count]->data_prox=&(data->obs[i]->prox[j][data->n+t_count]); // pointer to the proximate location
-	// 					count++;
-	// 					t_count++;
-	// 				}
-	// 			}
-	// 		}
-	//
-	// 	}
-	//
-	// }
-	//
-	// if (n_step >= 3) {
-	//
-	// 	for(i=0;i<data->uniq;i++) {
-	// 		// printf("Datapoint %i has %i configs.\n", i, data->obs[i]->n_config);
-	//
-	// 		for(j=0;j<data->obs[i]->n_config;j++) {
-	//
-	// 			data->near_set=(near_struct **)realloc(data->near_set, (count+data->n*(data->n-1)*(data->n-2)/6)*sizeof(near_struct *));
-	// 			t_count=0;
-	// 			for(k=0;k<(data->n-2);k++) {
-	// 				for(kp=(k+1);kp<(data->n-1);kp++) {
-	// 					for(kpp=(kp+1);kpp<(data->n);kpp++) {
-	// 						data->near_set[count]=(near_struct *)malloc(sizeof(near_struct));
-	// 						data->near_set[count]->config=(((data->obs[i]->config[j] ^ (1 << k)) ^ (1 << kp))) ^ (1 << kpp); // XOR at that bit to flip it
-	// 						data->near_set[count]->data_prox=&(data->obs[i]->prox[j][data->n+data->n*(data->n-1)/2+t_count]); // pointer to the proximate location
-	// 						count++;
-	// 						t_count++;
-	// 					}
-	// 				}
-	// 			}
-	// 		}
-	//
-	// 	}
-	//
-	// }
-	num_near=count;
-	qsort(data->near_set, num_near, sizeof(near_struct *), compare_states_near);
-	
-	count_uniq=1;
-	i=1;
-	while(i<num_near) {
-		if (compare_states_near(&(data->near_set[i]), &(data->near_set[i-1])) != 0) {
-			count_uniq++;
-		}
-		i++;
-	}
-	near_temp=(unsigned long int *)malloc(count_uniq*sizeof(unsigned long int));
-	data->near_uniq=count_uniq;
-	
-	i=0;
-	pos=1;
-	near_temp[0]=data->near_set[0]->config;
-	(*data->near_set[0]->data_prox)=0;
-	while(pos<num_near) {
-		if (compare_states_near(&(data->near_set[pos]), &(data->near_set[pos-1])) != 0) { // if the current one is different from the previous one then...
-			i++; // increment the counter...
-			near_temp[i]=data->near_set[pos]->config; // save the new one...
-		}
-		(*data->near_set[pos]->data_prox)=i; // whatever the current position in near, assign it to the current value of near_temp
-		pos++;
-	}
-
-	for(i=0;i<num_near;i++) {
-		free(data->near_set[i]);
-	}
-	free(data->near_set);
-	data->near=near_temp;
-	
-	// for(i=0;i<data->uniq;i++) {
-	// 	for(j=0;j<data->obs[i]->n_config;j++) {
-	// 		print_vec(data->obs[i]->config[j]);
-	// 		printf(" has neighbours... (%i)\n", data->obs[i]->n_blanks);
-	//
-	// 		for(k=0;k<data->n_prox-data->obs[i]->n_blanks;k++) {
-	// 			printf("%i %i\n", k, data->obs[i]->prox[j][k]);
-	// 			print_vec(data->near[data->obs[i]->prox[j][k]]);
-	// 			printf("\n");
-	// 		}
-	// 	}
-	// }
-	
-	// compute the sparsity
-	update_sparsity(data);
-
-	data->nei=(double *)malloc(data->near_uniq*sizeof(double));
-}
-
-void update_sparsity(all *data) {
+// One integer per data row. Rows that share an id (e.g. the expansions of one inconsistently-coded
+// entry) are held out together in cross-validation.
+void read_groups(dataset *d, const char *filename) {
+	FILE *f=fopen(filename, "r");
 	int i;
-	double running;
-	
-	data->sparsity=data->n_prox*exp(data->log_sparsity*log(10));
-	running=0;
-	for(i=0;i<data->uniq;i++) {
-		running += data->obs[i]->mult; //*(data->n-data->obs_raw[i]->n_blanks)*(data->n-data->obs_raw[i]->n_blanks+1)*1.0/(data->n*(data->n+1));
+	if (f == NULL) die("cannot open groups file '%s'", filename);
+	d->group=(int *)xmalloc(d->m*sizeof(int));
+	for(i=0;i<d->m;i++) {
+		if (fscanf(f, "%d", &d->group[i]) != 1) die("'%s': expected %d group ids, found %d", filename, d->m, i);
 	}
-	data->sparsity *= running;
-	data->sparsity *= (1.0/data->n_params);
+	fclose(f);
 }
 
-void update_mult_sim(all *data) {
-	int i, ip, jp, loc, loc_true, f, fixed, comb;
-	double *fields, *z, z_tot, max_val=0;
-	
-	fields=(double *)alloca(data->n*sizeof(double));
-	z=(double *)alloca(data->max_config*sizeof(double));
-		
-	for(i=0;i<data->uniq;i++) {
-		if (data->obs[i]->n_config > 1) {
-			
-			// first, we're going to compute the influence of the fixed variables on the blanked out data
-			for(loc=0;loc<data->obs[i]->n_blanks;loc++) { // go through all the blank positions...
-				fields[loc]=0;
-				loc_true=data->obs[i]->blanks[loc]; // actual node position
-				
-				for(ip=0;ip<data->n;ip++) { // compute the off diagonal terms... all the nodes...
-					if (ip != loc_true) { // except the current blank one...
-						
-						fixed=1;
-						for(f=0;f<data->obs[i]->n_blanks;f++) {
-							if (data->obs[i]->blanks[f] == ip) { // and except the other blank ones...
-								fixed=0;
-								break;
-							}
-						}
-						if (fixed) {
-							fields[loc] += data->big_list[data->ij[ip][loc_true]]*VAL(data->obs[i]->config[0], ip); // contribute to the field on the loc_true node
-						}
-					}
-				}
-				fields[loc] += data->big_list[data->h_offset+loc_true];
-			}
-			
-			// then, we are going to compute the rest of the energy... we are going to cycle through each of the combinations...
-			max_val=-1e20;
-			for(comb=0;comb<data->obs[i]->n_config;comb++) { // cycle through all the configurations of the blanks...
-				z[comb]=0;
-				// VAL(comb,ip) **should** be equal to VAL(data->obs[i]->config[comb],data->obs[i]->blanks[ip])
-				// for(ip=0;ip<data->obs[i]->n_blanks;ip++) {
-				// 	printf("(%lf == %lf) ", VAL(comb,ip), VAL(data->obs[i]->config[comb],data->obs[i]->blanks[ip]));
-				// }
-				// printf("\n");
-				for(ip=0;ip<data->obs[i]->n_blanks;ip++) { // for all the blank nodes...
-					z[comb] += fields[ip]*VAL(comb,ip); // first, add in all the external forcings...
-					for(jp=(ip+1);jp<data->obs[i]->n_blanks;jp++) { // then you have to do the cross terms between the blank nodes...
-						z[comb] += VAL(comb,ip)*VAL(comb,jp)*data->big_list[data->ij[data->obs[i]->blanks[ip]][data->obs[i]->blanks[jp]]];
-					}
-				}
-				if (z[comb] > max_val) {
-					max_val=z[comb];
-				}
-			}
-			z_tot=0;
-			for(comb=0;comb<data->obs[i]->n_config;comb++) {
-				z[comb]=exp(z[comb]-max_val);
-				z_tot += z[comb];
-			}			
-			for(comb=0;comb<data->obs[i]->n_config;comb++) {
-				data->obs[i]->mult_sim[comb] = z[comb]/z_tot;
-			}
-							
-		} else {
-			data->obs[i]->mult_sim[0]=1.0;
-		}
-	}
-	
+void free_data(dataset *d) {
+	if (d == NULL) return;
+	free(d->v); free(d->w); free(d->n_blanks); free(d->group); free(d);
 }
 
-double cross(char *filename, double log_sparsity, int nn, double *best_fit) {
-	all *data;
-	double glob_nloops, logl_ans;
-	int i, thread_id, last_pos, in, j, count, pos, n_obs, n_nodes, kfold, num_no_na;
-	unsigned long int config;
-	sample *sav;
-	double t0;
-	
-	data=new_data();
-	read_data(filename, data);
-	
-	// here's what we'll do -- we'll cycle through a bunch of samples where we leave out one data point
-	num_no_na=0;
-	for(i=0;i<data->m;i++) {
-		if (data->obs_raw[i]->n_blanks == 0) {
-			num_no_na++;
+double *read_params(const char *filename, int np) {
+	FILE *f=fopen(filename, "r");
+	double *x;
+	int j;
+	if (f == NULL) die("cannot open parameter file '%s'", filename);
+	x=(double *)xmalloc(np*sizeof(double));
+	for(j=0;j<np;j++) {
+		if (fscanf(f, "%le", &x[j]) != 1) die("'%s': expected %d parameters, found %d", filename, np, j);
+		if (!isfinite(x[j])) die("'%s': parameter %d is not a finite number", filename, j+1);
+	}
+	fclose(f);
+	return x;
+}
+
+void write_params(const char *filename, const double *x, int np) {
+	FILE *f=fopen(filename, "w");
+	int j;
+	if (f == NULL) die("cannot write parameter file '%s'", filename);
+	for(j=0;j<np;j++) fprintf(f, "%.10e ", x[j]);
+	if (ferror(f) || fclose(f) != 0) die("error writing parameter file '%s'", filename);
+}
+
+// ---------------------------------------------------------------------------------------------
+// building the model: merge duplicate rows, expand blanks
+// ---------------------------------------------------------------------------------------------
+
+typedef struct { uint64_t blanks, bits; int row; } packed_row;
+
+static int compare_packed(const void *a, const void *b) {
+	const packed_row *x=(const packed_row *)a, *y=(const packed_row *)b;
+	if (x->blanks != y->blanks) return x->blanks < y->blanks ? -1 : 1;
+	if (x->bits != y->bits) return x->bits < y->bits ? -1 : 1;
+	return x->row < y->row ? -1 : (x->row > y->row ? 1 : 0); // keeps the merge order deterministic
+}
+
+model *build_model(const dataset *d, const char *include, double log_sparsity) {
+	model *mo;
+	packed_row *pr;
+	int n=d->n, i, j, k, used=0, D, nb, pos[MAX_NODES], c, nc;
+	long r;
+	size_t bytes;
+
+	pr=(packed_row *)xmalloc(d->m*sizeof(packed_row));
+	for(i=0;i<d->m;i++) {
+		if (include != NULL && !include[i]) continue;
+		if (d->w[i] == 0) continue; // zero-weight rows carry no information
+		pr[used].blanks=0; pr[used].bits=0; pr[used].row=i;
+		for(j=0;j<n;j++) {
+			if (d->v[(size_t)i*n+j] == 0) pr[used].blanks |= ((uint64_t)1 << j);
+			if (d->v[(size_t)i*n+j] > 0) pr[used].bits |= ((uint64_t)1 << j);
+		}
+		used++;
+	}
+	if (used == 0) die("no data rows to fit");
+	qsort(pr, used, sizeof(packed_row), compare_packed);
+
+	D=1;
+	for(i=1;i<used;i++) if (pr[i].blanks != pr[i-1].blanks || pr[i].bits != pr[i-1].bits) D++;
+
+	mo=(model *)xmalloc(sizeof(model));
+	mo->n=n; mo->np=n*(n+1)/2; mo->D=D; mo->maxc=1; mo->total_w=0;
+	mo->mult=(double *)xmalloc(D*sizeof(double));
+	mo->omask=(double *)xmalloc((size_t)D*n*sizeof(double));
+	mo->start=(long *)xmalloc((D+1)*sizeof(long));
+
+	// first pass: weights, masks, and sizes
+	k=-1; r=0;
+	for(i=0;i<used;i++) {
+		if (i == 0 || pr[i].blanks != pr[i-1].blanks || pr[i].bits != pr[i-1].bits) {
+			k++;
+			mo->mult[k]=0;
+			nb=0;
+			for(j=0;j<n;j++) {
+				mo->omask[(size_t)k*n+j]=((pr[i].blanks >> j) & 1) ? 0.0 : 1.0;
+				nb += (int)((pr[i].blanks >> j) & 1);
+			}
+			nc=1 << nb;
+			if (nc > mo->maxc) mo->maxc=nc;
+			mo->start[k]=r;
+			r += nc;
+		}
+		mo->mult[k] += d->w[pr[i].row];
+		mo->total_w += d->w[pr[i].row];
+	}
+	mo->start[D]=r;
+	mo->R=r;
+
+	bytes=(size_t)r*n*sizeof(double);
+	if (bytes > ((size_t)1 << 35)) die("expanding the missing entries needs %.1f GB; reduce the number of blanks per row", bytes/1073741824.0);
+	mo->sig=(double *)xmalloc(bytes);
+	mo->lwfrozen=(double *)xmalloc(r*sizeof(double));
+
+	// second pass: expand each observation into its 2^blanks completions (blank j gets bit j of c)
+	k=-1;
+	for(i=0;i<used;i++) {
+		if (!(i == 0 || pr[i].blanks != pr[i-1].blanks || pr[i].bits != pr[i-1].bits)) continue;
+		k++;
+		nb=0;
+		for(j=0;j<n;j++) if ((pr[i].blanks >> j) & 1) pos[nb++]=j;
+		nc=1 << nb;
+		for(c=0;c<nc;c++) {
+			double *s=mo->sig+(size_t)(mo->start[k]+c)*n;
+			for(j=0;j<n;j++) s[j]=((pr[i].bits >> j) & 1) ? 1.0 : -1.0;
+			for(j=0;j<nb;j++) s[pos[j]]=((c >> j) & 1) ? 1.0 : -1.0;
+			mo->lwfrozen[mo->start[k]+c]=-log((double)nc);
 		}
 	}
-	printf("%i observations can be cross-validated.\n", num_no_na);
-	// if (num_no_na > 128) { // for the Pittsburgh Supercomputer Center, each node has a max of 128 cores, so let's restrict to this for the most efficient use of computer time
-	// 	num_no_na=128;
-	// }
-	
-	glob_nloops=0;
-	t0=clock();
-#pragma omp parallel private(data, pos, last_pos, count, sav, config, logl_ans, thread_id) reduction(+:glob_nloops)
+	free(pr);
+
+	// neighbours per fully-observed state: every set of 1..nn nodes flipped together
+	mo->nn=d->nn;
+	if (mo->nn < 1 || mo->nn > MAX_NN || mo->nn > n) die("NN must be between 1 and %d (and at most the number of nodes); got %d", MAX_NN, mo->nn);
+	mo->n_prox=0;
 	{
-
-		// parallelize this for loop
-#pragma omp for
-		for(in=0;in<num_no_na;in++) {
-			data=new_data();
-			read_data(filename, data);
-			data->best_fit=best_fit; // will either be NULL or a best guess
-			
-			data->m = data->m-1; // remove one data point
-
-			pos=0;
-			last_pos=0;
-			count=0;
-			while(count < (in+1)) {
-				if(data->obs_raw[pos]->n_blanks == 0) { // if you see a good one, count it
-					count++;
-					last_pos=pos;
-				}
-				pos++; // move forward one unit
-			}
-			pos=last_pos;
-
-			sav=data->obs_raw[pos]; // the pointer to the data we'll leave out
-			data->obs_raw[pos]=data->obs_raw[data->m]; //
-			data->obs_raw[data->m]=sav;
-			
-			process_obs_raw(data);				
-			init_params(data);
-			data->log_sparsity=log_sparsity;
-			create_near(data, nn);
-
-			simple_minimizer(data);
-
-			config=0;
-			for(i=0;i<data->n;i++) {
-				if (data->obs_raw[data->m]->config_base[i] > 0) {
-					config += (1 << i);
-				}
-			}
-			if (data->n <= 20) {
-				logl_ans=log_l(data, config, data->big_list, 0);
-			} else {
-				logl_ans=log_l(data, config, data->big_list, 1);
-			}
-
-			glob_nloops += logl_ans;
-			thread_id = omp_get_thread_num();
-			// printf("LogL of left-out point %i, computed in thread %i: %lf\n", in, thread_id, logl_ans);
-		}
-		
+		double comb=1.0;
+		for(j=1;j<=mo->nn;j++) { comb=comb*(n-j+1)/j; mo->n_prox += comb; }
 	}
-	printf("For log-sparsity=%lf, Log-l of held-out data is: %lf\n", log_sparsity, glob_nloops*1.0/num_no_na);
-	printf("Clock time for one iteration: %14.12lf seconds.\n", (clock() - t0)/CLOCKS_PER_SEC);
-	
-	return glob_nloops*1.0/num_no_na;
+	// Same scaling as the published code: lambda * |N| * |D| / N_params, with lambda = 10^log_sparsity
+	mo->sparsity=mo->n_prox*exp(log_sparsity*log(10.0))*mo->total_w/mo->np;
+	if (!isfinite(mo->sparsity)) die("log-sparsity %g is too large: the penalty overflows", log_sparsity);
+
+	mo->J=(double *)xmalloc((size_t)n*n*sizeof(double));
+	mo->gJ=(double *)xmalloc((size_t)n*n*sizeof(double));
+	mo->X=(double *)xmalloc((size_t)mo->maxc*n*sizeof(double));
+	mo->T=(double *)xmalloc((size_t)mo->maxc*n*sizeof(double));
+	mo->H=(double *)xmalloc(mo->maxc*sizeof(double));
+	mo->lw=(double *)xmalloc(mo->maxc*sizeof(double));
+	mo->g=(double *)xmalloc(mo->maxc*sizeof(double));
+	mo->u=(double *)xmalloc(n*sizeof(double));
+	mo->Rk=(double *)xmalloc(n*sizeof(double));
+	mo->LQ=(double *)xmalloc(n*sizeof(double));
+	mo->max_sub=0; mo->sub_mem=NULL; mo->sub_size=NULL; mo->E=NULL; mo->Rv=NULL; mo->LQs=NULL; mo->Ru=NULL; mo->Pu=NULL;
+	if (mo->nn > 1) {
+		if (mo->n_prox*mo->maxc*sizeof(double) > 8e9) die("NN=%d with %d nodes needs %.0f flows per state; too large", mo->nn, n, mo->n_prox);
+		mo->max_sub=(long)(mo->n_prox+0.5);
+		mo->sub_mem=(int *)xmalloc((size_t)mo->max_sub*mo->nn*sizeof(int));
+		mo->sub_size=(int *)xmalloc((size_t)mo->max_sub*sizeof(int));
+		mo->E=(double *)xmalloc((size_t)mo->max_sub*mo->maxc*sizeof(double));
+		mo->Rv=(double *)xmalloc((size_t)mo->max_sub*sizeof(double));
+		mo->LQs=(double *)xmalloc((size_t)mo->max_sub*sizeof(double));
+		mo->Ru=(double *)xmalloc(n*sizeof(double));
+		mo->Pu=(double *)xmalloc((size_t)n*n*sizeof(double));
+	}
+	return mo;
 }
 
-void compute_k_general(all *data, int do_derivs) {
-	int d, dp, k, a, i, j, f, ip, jp, loc_p, n, count, term, loc, d_count, fixed, changed;
-	int **ij;
-	unsigned long int config1, config2;
-	double **obs, **cross_terms;
-	double max_val, min_val, *ei, energy, running, big_running, *big_running_k, *running_k, multiplier;
-		
-	ij=data->ij; // save typing
-	if (do_derivs == 1) {
-		for(i=0;i<data->n_params;i++) {
-			data->dk[i]=0;
-		}
-		cross_terms=(double **)alloca(data->n*sizeof(double *));
-		for(i=0;i<data->n;i++) {
-			cross_terms[i]=(double *)alloca(data->n*sizeof(double));
-		}
-		running_k=(double *)alloca(data->n_params*sizeof(double));
-		big_running_k=(double *)alloca(data->n_params*sizeof(double));
-	}	
-	data->k=0;
-		
-	// in these cases, we'll need to fill in missing data
-	if (data->max_config > 1) { 
-		changed=0;
-		for(i=0;i<data->n_params;i++) {
-			if (data->big_list[i] != data->old_list[i]) {
-				changed=1;
-				break;
-			}
-		}
-		if (changed) {
-			update_mult_sim(data);
-		}
-		for(i=0;i<data->n_params;i++) {
-			data->old_list[i]=data->big_list[i];
-		}
-	}
-	
-	d_count=0;
-	for(d=0;d<data->uniq;d++) { // for each unique datapoint...
-		for(dp=0;dp<data->obs[d]->n_config;dp++) { // for each of the configurations
-			data->ei[d_count]=0;
-			
-			count=0;
-			for(i=0;i<data->n;i++) {
-				for(j=(i+1);j<data->n;j++) {
-					data->ei[d_count] += VAL(data->obs[d]->config[dp],i)*VAL(data->obs[d]->config[dp],j)*data->big_list[count];
-					count++;
-				}
-				data->ei[d_count] += VAL(data->obs[d]->config[dp],i)*data->big_list[data->h_offset+i]; // local fields
-			}
-				
-			data->ei[d_count] *= -1; // defined as the negative value in Jascha paper
-			d_count++;
-		}
-	}
-	
-	for(d=0;d<data->near_uniq;d++) { // for each unique nearest neighbour...
-		data->nei[d]=0;
-		count=0;
-		for(i=0;i<data->n;i++) {
-			for(j=(i+1);j<data->n;j++) {
-				data->nei[d] += VAL(data->near[d],i)*VAL(data->near[d],j)*data->big_list[count];
-				count++;
-			}
-			data->nei[d] += VAL(data->near[d],i)*data->big_list[data->h_offset+i]; // local fields
-		}
-		data->nei[d] *= -1; // defined as the negative value in Jascha paper
-	}
-	
-	d_count=0;
-	for(d=0;d<data->uniq;d++) {
-
-		if ((do_derivs == 1) && (data->obs[d]->n_config > 1)) {
-			// compute the expectation value of the pair
-			for(i=0;i<data->n;i++) {
-				for(j=(i+1);j<data->n;j++) {
-					cross_terms[i][j]=0;
-					cross_terms[j][i]=0;
-					for(k=0;k<data->obs[d]->n_config;k++) {
-						cross_terms[i][j] += VAL(data->obs[d]->config[k],i)*VAL(data->obs[d]->config[k],j)*data->obs[d]->mult_sim[k];
-						cross_terms[j][i] += VAL(data->obs[d]->config[k],i)*VAL(data->obs[d]->config[k],j)*data->obs[d]->mult_sim[k];
-					}						
-				}
-				cross_terms[i][i]=0;
-				for(k=0;k<data->obs[d]->n_config;k++) {
-					cross_terms[i][i] += VAL(data->obs[d]->config[k],i)*data->obs[d]->mult_sim[k];
-				}
-				
-			}
-						
-		}
-		
-		big_running=0;
-		if (do_derivs == 1) {
-			for(i=0;i<data->n_params;i++) {
-				big_running_k[i]=0;
-			}				
-		}
-		
-		for(dp=0;dp<data->obs[d]->n_config;dp++) {
-			config1=data->obs[d]->config[dp];
-			
-			max_val=-1e300;
-			for(n=0;n<data->n_prox-data->obs[d]->n_blanks;n++) { // TKTK
-				if ((data->ei[d_count]-data->nei[data->obs[d]->prox[dp][n]]) > max_val) {
-					max_val=(data->ei[d_count]-data->nei[data->obs[d]->prox[dp][n]]);
-				}
-			}	
-			max_val=max_val/2.0;
-			running=0;
-			if (do_derivs == 1) {
-				for(i=0;i<data->n_params;i++) {
-					running_k[i]=0;
-				}				
-			}
-			for(n=0;n<data->n_prox-data->obs[d]->n_blanks;n++) { // TKTK
-				loc=data->obs[d]->prox[dp][n];
-				config2=data->near[loc];
-				multiplier=data->obs[d]->mult*data->obs[d]->mult_sim[dp]*exp(0.5*(data->ei[d_count]-data->nei[loc])-max_val); 
-				running += multiplier;
-
-				// hard part -- do the derivatives
-				if (do_derivs == 1) {
-					count=0;
-					for(ip=0;ip<(data->n);ip++) {
-						for(jp=(ip+1);jp<data->n;jp++) {
-							running_k[count] += -1*(VAL(config1,ip)*VAL(config1,jp)-VAL(config2, ip)*VAL(config2, jp))*multiplier/2.0;  
-							// defined as the negative value in Jascha paper -- BUT: note that Jascha convention is different by a factor of 1/2, Eddie fixed it
-							count++;
-						}
-					}
-					for(ip=0;ip<(data->n);ip++) {
-						running_k[data->h_offset+ip] += -1*(VAL(config1,ip)-VAL(config2,ip))*multiplier/2.0;  // defined as the negative value in Jascha paper
-					}
-					
-					for(ip=0;ip<data->obs[d]->n_blanks;ip++) {
-						loc_p=data->obs[d]->blanks[ip];
-						running_k[data->h_offset+loc_p] += multiplier*(VAL(config1,loc_p) - cross_terms[loc_p][loc_p]);
-						for(jp=0;jp<data->n;jp++) {
-							if (loc_p != jp) {
-								
-								fixed=1;
-								for(f=0;f<data->obs[d]->n_blanks;f++) {
-									if (data->obs[d]->blanks[f] == jp) { 
-										fixed=0;
-										break;
-									}
-								}
-								if (fixed) {
-									running_k[ij[loc_p][jp]] += multiplier*(VAL(config1,loc_p)*VAL(config1,jp) - cross_terms[loc_p][jp]); 
-								} else {
-									if (loc_p > jp) { // if they are both in the blank set, don't double-count OMG THIS TOOK ME A WEEK TO FIND
-										running_k[ij[loc_p][jp]] += multiplier*(VAL(config1,loc_p)*VAL(config1,jp) - cross_terms[loc_p][jp]); 
-									}
-								}
-							}
-						}
-					}
-				}	
-			}
-			big_running += running*exp(max_val);
-			if (do_derivs == 1) {
-				for(i=0;i<data->n_params;i++) {
-					big_running_k[i] += running_k[i]*exp(max_val);
-				}				
-			}
-			d_count++;
-		}
-		data->k += big_running;
-		if (do_derivs == 1) {
-			for(i=0;i<data->n_params;i++) {
-				data->dk[i] += big_running_k[i];
-			}				
-		}
-		
-	}
-
-	for(i=0;i<data->n_params;i++) {
-		data->k += data->sparsity*data->big_list[i]*data->big_list[i]/2; // put in a sparse prior...
-	}
-	
-	if (do_derivs == 1) {
-		for(i=0;i<data->n_params;i++) {
-			data->dk[i] += data->sparsity*data->big_list[i]; // don't forget that this also impacts the derivatives!
-		}
-	}
-	
+void free_model(model *m) {
+	if (m == NULL) return;
+	free(m->sig); free(m->omask); free(m->mult); free(m->start); free(m->lwfrozen);
+	free(m->J); free(m->gJ); free(m->X); free(m->T); free(m->H); free(m->lw); free(m->g); free(m->u); free(m->Rk); free(m->LQ);
+	free(m->sub_mem); free(m->sub_size); free(m->E); free(m->Rv); free(m->LQs); free(m->Ru); free(m->Pu);
+	free(m);
 }
 
-// GSL FUNCTIONS DEFINED
-double k_function(const gsl_vector *v, void *params) {
+// ---------------------------------------------------------------------------------------------
+// the objective
+// ---------------------------------------------------------------------------------------------
+//
+// For an observation o with completions c (weights w_c = p_theta(c | o)), and T_ck = exp(-s_k phi_k)
+// the flow out of completion c along observed node k (flows along missing nodes are not used):
+//
+//   OBJ_LEGACY    K_o = sum_c w_c sum_k T_ck                 gradient includes d w_c / d theta
+//   OBJ_FROZEN    K_o = sum_c w_c sum_k T_ck                 w_c held fixed (re-estimated by fit_model)
+//   OBJ_MARGINAL  K_o = sum_k sqrt( sum_c w_c T_ck^2 )       = sum_k sqrt( p_theta(o^k) / p_theta(o) )
+//
+// OBJ_MARGINAL is ordinary MPF for the marginal distribution of the observed nodes. With no missing
+// entries the three are the same convex function. See mpf.h and CLAUDE_IMPROVEMENTS_SUMMARY.md for what
+// each one assumes about how entries come to be missing.
+//
+// Everything that involves a completion weight is computed from log weights, so that a tiny weight
+// multiplying a huge flow (or the reverse) keeps its true size; complete rows never square a flow.
+//
+// Returns K plus the penalty sparsity * |theta|^2 / 2. If grad != NULL it receives the gradient.
+// If set_frozen != 0 the current completion weights are stored for OBJ_FROZEN.
+// The result (or the gradient) can be non-finite if a flow itself overflows a double; callers check.
+static double log_sum_exp(const double *v, int n) {
+	double mx=v[0], z=0;
 	int i;
-	all *data;
-	
-	data=(all *)params;
-	for(i=0;i<data->n_params;i++) {
-		data->big_list[i]=gsl_vector_get(v, i);
-	}
-	compute_k_general(data, 0);
-	return data->k;
+	for(i=1;i<n;i++) if (v[i] > mx) mx=v[i];
+	if (!isfinite(mx)) return mx;
+	for(i=0;i<n;i++) z += exp(v[i]-mx);
+	return mx+log(z);
 }
 
-void dk_function(const gsl_vector *v, void *params, gsl_vector *df) {
+// All subsets of 1..nn of the observed nodes, in a fixed order: mem[idx*nn+i] are the members (ascending).
+static long build_subsets(int n_obs, const int *obs, int nn, int *mem, int *size) {
+	long count=0;
+	int idx[MAX_NN], i, j, k;
+	for(j=1;j<=nn && j<=n_obs;j++) {
+		for(i=0;i<j;i++) idx[i]=i;
+		for(;;) {
+			size[count]=j;
+			for(i=0;i<j;i++) mem[count*nn+i]=obs[idx[i]];
+			count++;
+			for(i=j-1;i>=0 && idx[i] == n_obs-j+i;i--);
+			if (i < 0) break;
+			idx[i]++;
+			for(k=i+1;k<j;k++) idx[k]=idx[k-1]+1;
+		}
+	}
+	return count;
+}
+
+// The objective for nn > 1: flows from each data state to every state reached by flipping a set A of
+// 1..nn observed nodes together,
+//     exp( (H(s^A) - H(s)) / 2 ) = exp( - sum_{k in A} x_k + 2 sum_{k<l in A} J_kl s_k s_l ),   x_k = s_k phi_k.
+// A flow depends on h_a only for a in A and on J_ab only when exactly one of a, b is in A, so with
+//     Ru_a  = sum of (weighted) flows over the sets that contain a
+//     Pu_ab = sum of (weighted) flows over the sets that contain both a and b
+// the gradient is  dh_a = -s_a Ru_a,  dJ_ab = -s_a s_b (Ru_a + Ru_b - 2 Pu_ab).
+// The three treatments of missing data are as for single flips, with "k" replaced by "A":
+//     marginal:  K_o = sum_A sqrt( p(o^A) / p(o) ),  A a set of observed nodes;
+//     legacy:    A a set of observed nodes;
+//     frozen:    A any set with at least one observed node (see below), which is what keeps the
+//                fixed point consistent under missing-at-random when nn > 1.
+static double compute_k_multi(model *m, const double *theta, double *grad, int objective, int set_frozen) {
+	int n=m->n, nn=m->nn, d, c, k, l, i, j, cnt, nc, n_obs, obs[MAX_NODES];
+	const double *h=theta+n*(n-1)/2, *s, *om;
+	double K=0, mult, x, phi, Hc, lse, total, a, U, v, coef, sumR, wc, e, t, *X, *E, *gh=NULL;
+	long idx, n_sub;
+
+	cnt=0;
+	for(k=0;k<n;k++) {
+		m->J[k*n+k]=0;
+		for(l=k+1;l<n;l++) { m->J[k*n+l]=theta[cnt]; m->J[l*n+k]=theta[cnt]; cnt++; }
+	}
+	if (grad != NULL) {
+		for(k=0;k<n*n;k++) m->gJ[k]=0;
+		for(k=0;k<m->np;k++) grad[k]=0;
+		gh=grad+n*(n-1)/2;
+	}
+
+	for(d=0;d<m->D;d++) {
+		nc=(int)(m->start[d+1]-m->start[d]);
+		mult=m->mult[d];
+		om=m->omask+(size_t)d*n;
+		if (objective == OBJ_FROZEN && nc > 1) {
+			// Frozen weights: flows go to every neighbour within distance nn, including those that flip a
+			// missing node together with an observed one. Summed over patterns of missing entries, the
+			// observed parts with their model completions reproduce the full joint distribution when
+			// entries are missing at random, so the fixed point solves the complete-data MPF equation
+			// for any neighbourhood. Sets that lie entirely inside the missing nodes cancel identically
+			// within a row and are dropped (for nn = 1 that leaves exactly the observed single flips).
+			long kept=0;
+			for(k=0;k<n;k++) obs[k]=k;
+			n_sub=build_subsets(n, obs, nn, m->sub_mem, m->sub_size);
+			for(idx=0;idx<n_sub;idx++) {
+				int any=0;
+				for(i=0;i<m->sub_size[idx];i++) if (om[m->sub_mem[idx*nn+i]] > 0) any=1;
+				if (!any) continue;
+				if (kept != idx) {
+					m->sub_size[kept]=m->sub_size[idx];
+					for(i=0;i<m->sub_size[idx];i++) m->sub_mem[kept*nn+i]=m->sub_mem[idx*nn+i];
+				}
+				kept++;
+			}
+			n_sub=kept;
+		} else {
+			n_obs=0;
+			for(k=0;k<n;k++) if (om[k] > 0) obs[n_obs++]=k;
+			n_sub=build_subsets(n_obs, obs, nn, m->sub_mem, m->sub_size);
+		}
+
+		// H and the log flow of every subset, for every completion
+		for(c=0;c<nc;c++) {
+			s=m->sig+(size_t)(m->start[d]+c)*n;
+			X=m->X+(size_t)c*n;
+			E=m->E+(size_t)c*n_sub;
+			Hc=0;
+			for(k=0;k<n;k++) {
+				const double *Jk=m->J+(size_t)k*n;
+				phi=h[k];
+				for(l=0;l<n;l++) phi += Jk[l]*s[l];
+				x=s[k]*phi;
+				Hc += 0.5*(x+s[k]*h[k]);
+				X[k]=x;
+			}
+			m->H[c]=Hc;
+			for(idx=0;idx<n_sub;idx++) {
+				const int *mem=m->sub_mem+idx*nn;
+				int sz=m->sub_size[idx];
+				e=0;
+				for(i=0;i<sz;i++) {
+					e -= X[mem[i]];
+					for(j=i+1;j<sz;j++) e += 2*m->J[(size_t)mem[i]*n+mem[j]]*s[mem[i]]*s[mem[j]];
+				}
+				E[idx]=e;
+			}
+		}
+
+		// log completion weights
+		if (nc == 1) {
+			m->lw[0]=0.0;
+		} else if (objective == OBJ_FROZEN && !set_frozen) {
+			for(c=0;c<nc;c++) m->lw[c]=m->lwfrozen[m->start[d]+c];
+		} else {
+			lse=log_sum_exp(m->H, nc);
+			for(c=0;c<nc;c++) m->lw[c]=m->H[c]-lse;
+		}
+		if (set_frozen) for(c=0;c<nc;c++) m->lwfrozen[m->start[d]+c]=m->lw[c];
+
+		if (objective != OBJ_MARGINAL || nc == 1) {
+			// E becomes w_c * flow
+			total=0;
+			for(c=0;c<nc;c++) {
+				E=m->E+(size_t)c*n_sub;
+				v=0;
+				for(idx=0;idx<n_sub;idx++) { E[idx]=exp(m->lw[c]+E[idx]); v += E[idx]; }
+				m->g[c]=v;
+				total += v;
+			}
+			K += mult*total;
+			if (grad != NULL) for(c=0;c<nc;c++) {
+				s=m->sig+(size_t)(m->start[d]+c)*n;
+				E=m->E+(size_t)c*n_sub;
+				for(k=0;k<n;k++) m->Ru[k]=0;
+				for(k=0;k<n*n;k++) m->Pu[k]=0;
+				for(idx=0;idx<n_sub;idx++) {
+					const int *mem=m->sub_mem+idx*nn;
+					int sz=m->sub_size[idx];
+					t=mult*E[idx];
+					for(i=0;i<sz;i++) {
+						m->Ru[mem[i]] += t;
+						for(j=i+1;j<sz;j++) m->Pu[(size_t)mem[i]*n+mem[j]] += t;
+					}
+				}
+				a=(objective == OBJ_LEGACY && nc > 1) ? mult*(m->g[c]-exp(m->lw[c])*total) : 0.0;
+				for(k=0;k<n;k++) {
+					double sk=s[k], *gJk=m->gJ+(size_t)k*n, *Pk=m->Pu+(size_t)k*n;
+					gh[k] += sk*(a-m->Ru[k]);
+					for(l=k+1;l<n;l++) gJk[l] += sk*s[l]*(a-m->Ru[k]-m->Ru[l]+2*Pk[l]);
+				}
+			}
+		} else {
+			// log of p(o^A)/p(o) = log sum_c exp(log w_c + 2 * log flow)
+			sumR=0;
+			for(idx=0;idx<n_sub;idx++) {
+				for(c=0;c<nc;c++) m->g[c]=m->lw[c]+2*m->E[(size_t)c*n_sub+idx];
+				m->LQs[idx]=log_sum_exp(m->g, nc);
+				m->Rv[idx]=exp(0.5*m->LQs[idx]);
+				sumR += m->Rv[idx];
+			}
+			K += mult*sumR;
+			if (grad != NULL) for(c=0;c<nc;c++) {
+				s=m->sig+(size_t)(m->start[d]+c)*n;
+				E=m->E+(size_t)c*n_sub;
+				for(k=0;k<n;k++) m->Ru[k]=0;
+				for(k=0;k<n*n;k++) m->Pu[k]=0;
+				U=0;
+				for(idx=0;idx<n_sub;idx++) {
+					const int *mem=m->sub_mem+idx*nn;
+					int sz=m->sub_size[idx];
+					t=0.5*mult*m->Rv[idx]*exp(m->lw[c]+2*E[idx]-m->LQs[idx]);
+					U += t;
+					for(i=0;i<sz;i++) {
+						m->Ru[mem[i]] += t;
+						for(j=i+1;j<sz;j++) m->Pu[(size_t)mem[i]*n+mem[j]] += t;
+					}
+				}
+				wc=exp(m->lw[c]);
+				v=0.5*mult*wc*sumR;
+				coef=U-v;
+				for(k=0;k<n;k++) {
+					double sk=s[k], *gJk=m->gJ+(size_t)k*n, *Pk=m->Pu+(size_t)k*n;
+					gh[k] += sk*(coef-2*m->Ru[k]);
+					for(l=k+1;l<n;l++) gJk[l] += sk*s[l]*(coef-2*m->Ru[k]-2*m->Ru[l]+4*Pk[l]);
+				}
+			}
+		}
+	}
+
+	if (grad != NULL) {
+		cnt=0;
+		for(k=0;k<n;k++) for(l=k+1;l<n;l++) grad[cnt++]=m->gJ[k*n+l];
+	}
+	for(k=0;k<m->np;k++) K += m->sparsity*theta[k]*theta[k]/2;
+	if (grad != NULL) for(k=0;k<m->np;k++) grad[k] += m->sparsity*theta[k];
+	return K;
+}
+
+double compute_k(model *m, const double *theta, double *grad, int objective, int set_frozen) {
+	int n=m->n, d, c, k, l, cnt, nc;
+	const double *h=theta+n*(n-1)/2, *s, *om;
+	double K=0, mult, x, phi, Hc, lse, total, a, U, v, coef, sumR, wc, *X, *T, *gh=NULL;
+
+	if (m->nn > 1) return compute_k_multi(m, theta, grad, objective, set_frozen);
+
+	cnt=0;
+	for(k=0;k<n;k++) {
+		m->J[k*n+k]=0;
+		for(l=k+1;l<n;l++) { m->J[k*n+l]=theta[cnt]; m->J[l*n+k]=theta[cnt]; cnt++; }
+	}
+	if (grad != NULL) {
+		for(k=0;k<n*n;k++) m->gJ[k]=0;
+		for(k=0;k<m->np;k++) grad[k]=0;
+		gh=grad+n*(n-1)/2;
+	}
+
+	for(d=0;d<m->D;d++) {
+		nc=(int)(m->start[d+1]-m->start[d]);
+		mult=m->mult[d];
+		om=m->omask+(size_t)d*n;
+
+		// H of every completion, and x_ck = s_k phi_k (the flow along k is exp(-x_ck))
+		for(c=0;c<nc;c++) {
+			s=m->sig+(size_t)(m->start[d]+c)*n;
+			X=m->X+(size_t)c*n;
+			Hc=0;
+			for(k=0;k<n;k++) {
+				const double *Jk=m->J+(size_t)k*n;
+				phi=h[k];
+				for(l=0;l<n;l++) phi += Jk[l]*s[l];
+				x=s[k]*phi;
+				Hc += 0.5*(x+s[k]*h[k]);
+				X[k]=x;
+			}
+			m->H[c]=Hc;
+		}
+
+		if (nc == 1) { // a complete row: ordinary MPF, the same for all three objectives
+			s=m->sig+(size_t)m->start[d]*n;
+			total=0;
+			for(k=0;k<n;k++) { m->T[k]=exp(-m->X[k]); total += m->T[k]; }
+			K += mult*total;
+			if (set_frozen) m->lwfrozen[m->start[d]]=0.0;
+			if (grad != NULL) {
+				for(k=0;k<n;k++) m->u[k]=mult*s[k]*m->T[k];
+				for(k=0;k<n;k++) {
+					double uk=m->u[k], sk=s[k], *gJk=m->gJ+(size_t)k*n;
+					gh[k] -= uk;
+					for(l=k+1;l<n;l++) gJk[l] -= uk*s[l]+sk*m->u[l];
+				}
+			}
+			continue;
+		}
+
+		// log completion weights
+		if (objective == OBJ_FROZEN && !set_frozen) {
+			for(c=0;c<nc;c++) m->lw[c]=m->lwfrozen[m->start[d]+c];
+		} else {
+			lse=log_sum_exp(m->H, nc);
+			for(c=0;c<nc;c++) m->lw[c]=m->H[c]-lse;
+		}
+		if (set_frozen) for(c=0;c<nc;c++) m->lwfrozen[m->start[d]+c]=m->lw[c];
+
+		if (objective != OBJ_MARGINAL) {
+			// T_ck here holds w_c * (flow along k) = exp(log w_c - x_ck)
+			total=0;
+			for(c=0;c<nc;c++) {
+				X=m->X+(size_t)c*n; T=m->T+(size_t)c*n;
+				v=0;
+				for(k=0;k<n;k++) { T[k]=(om[k] > 0) ? exp(m->lw[c]-X[k]) : 0.0; v += T[k]; }
+				m->g[c]=v;
+				total += v;
+			}
+			K += mult*total;
+			if (grad != NULL) for(c=0;c<nc;c++) {
+				s=m->sig+(size_t)(m->start[d]+c)*n;
+				T=m->T+(size_t)c*n;
+				// derivative of the weights, w_c (f(c) - <f>), contributes (w_c g_c - w_c K_o) f(c)
+				a=(objective == OBJ_LEGACY) ? mult*(m->g[c]-exp(m->lw[c])*total) : 0.0;
+				for(k=0;k<n;k++) m->u[k]=mult*s[k]*T[k];
+				for(k=0;k<n;k++) {
+					double ask=a*s[k], uk=m->u[k], sk=s[k], *gJk=m->gJ+(size_t)k*n;
+					gh[k] += ask-uk;
+					for(l=k+1;l<n;l++) gJk[l] += ask*s[l]-uk*s[l]-sk*m->u[l];
+				}
+			}
+		} else {
+			// log of p(o^k)/p(o) = log sum_c exp(log w_c - 2 x_ck)
+			sumR=0;
+			for(k=0;k<n;k++) {
+				if (om[k] > 0) {
+					for(c=0;c<nc;c++) m->g[c]=m->lw[c]-2*m->X[(size_t)c*n+k];
+					m->LQ[k]=log_sum_exp(m->g, nc);
+					m->Rk[k]=exp(0.5*m->LQ[k]);
+					sumR += m->Rk[k];
+				} else {
+					m->LQ[k]=0; m->Rk[k]=0; // no flow along a missing node
+				}
+			}
+			K += mult*sumR;
+			if (grad != NULL) for(c=0;c<nc;c++) {
+				// d log R_k = ( <f>_{c | o^k} - <f>_{c | o} ) / 2; the posterior over completions given
+				// the flipped observation has weights exp(log w_c - 2 x_ck - LQ_k)
+				s=m->sig+(size_t)(m->start[d]+c)*n;
+				X=m->X+(size_t)c*n;
+				wc=exp(m->lw[c]);
+				v=0.5*mult*wc*sumR;
+				U=0;
+				for(k=0;k<n;k++) {
+					m->u[k]=(om[k] > 0) ? 0.5*mult*m->Rk[k]*exp(m->lw[c]-2*X[k]-m->LQ[k]) : 0.0;
+					U += m->u[k];
+				}
+				coef=U-v;
+				for(k=0;k<n;k++) {
+					double sk=s[k], ck=coef-2*m->u[k], *gJk=m->gJ+(size_t)k*n;
+					gh[k] += sk*ck;
+					for(l=k+1;l<n;l++) gJk[l] += sk*s[l]*(ck-2*m->u[l]);
+				}
+			}
+		}
+	}
+
+	if (grad != NULL) {
+		cnt=0;
+		for(k=0;k<n;k++) for(l=k+1;l<n;l++) grad[cnt++]=m->gJ[k*n+l];
+	}
+	for(k=0;k<m->np;k++) K += m->sparsity*theta[k]*theta[k]/2;
+	if (grad != NULL) for(k=0;k<m->np;k++) grad[k] += m->sparsity*theta[k];
+	return K;
+}
+
+// ---------------------------------------------------------------------------------------------
+// minimisation: L-BFGS with a weak-Wolfe bisection line search
+// ---------------------------------------------------------------------------------------------
+
+#define LBFGS_MEMORY 12
+#define GTOL_TARGET 1e-9   // stop when max |gradient| falls below this times (total weight * neighbours per state)
+#define GTOL_ACCEPT 1e-7   // a fit counts as converged only if max |gradient| is below this times the same scale
+
+// max |g_i|, or infinity if any component is not finite
+static double max_abs(const double *g, int np) {
+	double gmax=0;
 	int i;
-	double ep=1e-3, old;
-	all *data;
-	
-	data=(all *)params;
-	for(i=0;i<data->n_params;i++) {
-		data->big_list[i]=gsl_vector_get(v, i);
+	for(i=0;i<np;i++) {
+		if (!isfinite(g[i])) return INFINITY;
+		if (fabs(g[i]) > gmax) gmax=fabs(g[i]);
 	}
-	compute_k_general(data, 1);
-	
-	for(i=0;i<data->n_params;i++) {
-		gsl_vector_set(df, i, data->dk[i]);
-	}
-}
-	
-void kdk_function(const gsl_vector *x, void *params, double *f, gsl_vector *df) {
-    *f = k_function(x, params);
-    dk_function(x, params, df);
+	return gmax;
 }
 
-void simple_minimizer(all *data) {
-    size_t iter = 0;
-	double prev, num;
-    int i, status;
+static fit_info lbfgs(model *m, double *x, int objective, int maxit) {
+	int np=m->np, M=LBFGS_MEMORY, i, j, it, hist=0, ls, stall=0, ended=0;
+	double scale=m->total_w*m->n_prox; // the size of K: total weight times the number of flows per state
+	double *g=(double *)xmalloc(np*sizeof(double)), *d=(double *)xmalloc(np*sizeof(double));
+	double *xn=(double *)xmalloc(np*sizeof(double)), *gn=(double *)xmalloc(np*sizeof(double));
+	double *Sm=(double *)xmalloc((size_t)M*np*sizeof(double)), *Ym=(double *)xmalloc((size_t)M*np*sizeof(double));
+	double rho[LBFGS_MEMORY], al[LBFGS_MEMORY];
+	double f, fn=0, gd, gnd, t, lo, hi, sy, yy, gmax, b, nn;
+	fit_info info;
 
-    const gsl_multimin_fdfminimizer_type *T;
-    gsl_multimin_fdfminimizer *s;
+	info.evaluations=0; info.status=FIT_MAXIT;
+	f=compute_k(m, x, g, objective, 0); info.evaluations++;
+	gmax=max_abs(g, np);
+	if (!isfinite(f) || !isfinite(gmax)) { info.status=FIT_NUMERICAL; ended=1; }
 
-	gsl_vector *x;
-	gsl_multimin_function_fdf k_func;
+	for(it=0;!ended && it<maxit;it++) {
+		if (gmax < GTOL_TARGET*scale) { ended=1; break; }
 
-	// set up the system
-	k_func.n = data->n_params;  /* number of function components */
-	k_func.f = &k_function;
-	k_func.df = &dk_function;
-	k_func.fdf = &kdk_function;
-	k_func.params = (void *)data;
-	
-	x = gsl_vector_alloc(data->n_params);
-	for(i=0;i<data->n_params;i++) {
-		gsl_vector_set(x, i, data->big_list[i]); //
+		// two-loop recursion
+		for(i=0;i<np;i++) d[i]=-g[i];
+		for(j=hist-1;j>=0;j--) {
+			double *sj=Sm+(size_t)j*np, *yj=Ym+(size_t)j*np;
+			al[j]=0;
+			for(i=0;i<np;i++) al[j] += sj[i]*d[i];
+			al[j] *= rho[j];
+			for(i=0;i<np;i++) d[i] -= al[j]*yj[i];
+		}
+		if (hist > 0) {
+			double *sj=Sm+(size_t)(hist-1)*np, *yj=Ym+(size_t)(hist-1)*np;
+			sy=0; yy=0;
+			for(i=0;i<np;i++) { sy += sj[i]*yj[i]; yy += yj[i]*yj[i]; }
+			for(i=0;i<np;i++) d[i] *= sy/yy;
+		}
+		for(j=0;j<hist;j++) {
+			double *sj=Sm+(size_t)j*np, *yj=Ym+(size_t)j*np;
+			b=0;
+			for(i=0;i<np;i++) b += yj[i]*d[i];
+			b *= rho[j];
+			for(i=0;i<np;i++) d[i] += sj[i]*(al[j]-b);
+		}
+		gd=0;
+		for(i=0;i<np;i++) gd += g[i]*d[i];
+		if (!(gd < 0)) { // not a descent direction: restart from steepest descent
+			hist=0;
+			for(i=0;i<np;i++) d[i]=-g[i];
+			gd=0;
+			for(i=0;i<np;i++) gd += g[i]*d[i];
+		}
+		t=1.0;
+		if (hist == 0) {
+			nn=0;
+			for(i=0;i<np;i++) nn += g[i]*g[i];
+			t=fmin(1.0, 1.0/sqrt(nn));
+		}
+
+		// line search: sufficient decrease and curvature conditions, by bisection / doubling.
+		// A trial point with a non-finite objective or gradient is treated as a step that is too long.
+		lo=0; hi=-1;
+		for(ls=0;ls<60;ls++) {
+			for(i=0;i<np;i++) xn[i]=x[i]+t*d[i];
+			fn=compute_k(m, xn, gn, objective, 0); info.evaluations++;
+			if (!isfinite(fn) || !isfinite(max_abs(gn, np))) { hi=t; t=0.5*(lo+hi); continue; }
+			gnd=0;
+			for(i=0;i<np;i++) gnd += gn[i]*d[i];
+			if (!(fn <= f+1e-4*t*gd)) { hi=t; t=0.5*(lo+hi); }
+			else if (gnd < 0.9*gd) { lo=t; t=(hi < 0) ? 2*t : 0.5*(lo+hi); }
+			else break;
+		}
+		if (ls == 60 && (!isfinite(fn) || !isfinite(max_abs(gn, np)) || !(fn <= f))) { ended=1; break; } // no acceptable step exists: keep x
+
+		if (hist == M) {
+			memmove(Sm, Sm+np, (size_t)(M-1)*np*sizeof(double));
+			memmove(Ym, Ym+np, (size_t)(M-1)*np*sizeof(double));
+			memmove(rho, rho+1, (M-1)*sizeof(double));
+			hist--;
+		}
+		sy=0;
+		for(i=0;i<np;i++) {
+			Sm[(size_t)hist*np+i]=xn[i]-x[i];
+			Ym[(size_t)hist*np+i]=gn[i]-g[i];
+			sy += (xn[i]-x[i])*(gn[i]-g[i]);
+		}
+		if (sy > 1e-300) { rho[hist]=1.0/sy; hist++; }
+
+		if (fabs(f-fn) <= 1e-14*fabs(f)) stall++; else stall=0;
+		for(i=0;i<np;i++) { x[i]=xn[i]; g[i]=gn[i]; }
+		f=fn;
+		gmax=max_abs(g, np);
+		if (stall >= 3) { ended=1; it++; break; } // the objective cannot resolve further progress
 	}
-	T = gsl_multimin_fdfminimizer_conjugate_fr; // 5867.659379
-	// T = gsl_multimin_fdfminimizer_conjugate_pr; // 5866.193340 5865.871289 5866.563172 5868.561687
-	// T = gsl_multimin_fdfminimizer_vector_bfgs2; // 6118.521483
-	s = gsl_multimin_fdfminimizer_alloc(T, data->n_params);
-	
-	compute_k_general(data, 1);
 
-	gsl_multimin_fdfminimizer_set(s, &k_func, x, 0.01, 1e-6);
-	
-	prev=1e300;
-	do {
-		iter++;
-		status = gsl_multimin_fdfminimizer_iterate(s);
-
-		status = gsl_multimin_test_gradient(s->gradient, 1e-6);
-		
-		// if (data->best_fit != NULL) {
-			// printf ("%i %li (%lf) : ", status, iter, s->f);
-			// for(i=0;i<data->n_params;i++) {
-			// 	printf("%.10le ", gsl_vector_get (s->x, i));
-			// }
-			// printf("\n");
-		// }
-		// printf("Derivs: ");
-		// for(i=0;i<data->n_params;i++) {
-		// 	printf("%lf ", data->dk[i]);
-		// }
-		// printf("\n");
-		
-		num=0;
-		for(i=0;i<data->n_params;i++) {
-			num += fabs(data->big_list[i]);
-		}
-		
-		if ((fabs(prev-num) < 1e-16) && ((iter % 20) == 19)) {
-			break;
-		}
-		if ((iter % 20) == 0) {
-			prev=num;
-		}
-	} while (status == GSL_CONTINUE && iter < 3000);
-
-	// compute_k_general(data, 1);
-	// printf("FINAL params: ");
-	// for(i=0;i<data->n_params;i++) {
-	// 	printf("%.10le ", gsl_vector_get (s->x, i));
-	// }
-	// printf("\n");
-
-	for(i=0;i<data->n_params;i++) {
-		data->big_list[i]=gsl_vector_get(s->x, i);
+	// How it ended is decided by the gradient at the returned point, not by why the loop stopped: a
+	// stalled line search is only called convergence if the gradient is in fact small.
+	if (info.status != FIT_NUMERICAL) {
+		if (gmax < GTOL_ACCEPT*scale) info.status=FIT_CONVERGED;
+		else info.status=ended ? FIT_STALLED : FIT_MAXIT;
 	}
-	
-	gsl_multimin_fdfminimizer_free(s);
-	gsl_vector_free(x);
+	info.iterations=it; info.k=f; info.gmax=gmax; info.converged=(info.status == FIT_CONVERGED);
+	free(g); free(d); free(xn); free(gn); free(Sm); free(Ym);
+	return info;
+}
+
+// Fit the model; x holds the starting point on entry and the solution on exit.
+// Without missing data the problem is convex and the result does not depend on the starting point.
+// With missing data none of the three is convex: the result is a local solution that can depend on the start.
+fit_info fit_model(model *m, double *x, int objective) {
+	double scale=m->total_w*m->n_prox, *g;
+	fit_info info, step;
+	int outer;
+
+	if (objective != OBJ_FROZEN || m->maxc == 1) {
+		return lbfgs(m, x, objective == OBJ_FROZEN ? OBJ_MARGINAL : objective, 3000);
+	}
+
+	// Frozen-weight iteration: freeze the completion weights at the current parameters, take a few
+	// L-BFGS steps on the (convex) frozen-weight flow objective, re-estimate the weights, and repeat.
+	// A fixed point solves   sum_o sum_c p_theta(c|o) grad_theta [flows out of (o,c)] + penalty = 0,
+	// i.e. the flow gradient with the weights treated as constants. This is an estimating equation, not
+	// the gradient of an objective, and it is not likelihood EM: there is no monotonicity guarantee.
+	// The residual of that equation at the returned point is reported as gmax and decides convergence.
+	g=(double *)xmalloc(m->np*sizeof(double));
+	info.iterations=0; info.evaluations=0; info.status=FIT_MAXIT; info.k=0; info.gmax=INFINITY;
+	for(outer=0;outer<5000;outer++) {
+		info.k=compute_k(m, x, g, OBJ_FROZEN, 1);            // freeze the weights at x; g = residual of the estimating equation
+		info.evaluations++;
+		info.gmax=max_abs(g, m->np);
+		if (!isfinite(info.k) || !isfinite(info.gmax)) { info.status=FIT_NUMERICAL; break; }
+		if (info.gmax < GTOL_ACCEPT*scale) { info.status=FIT_CONVERGED; break; }
+		step=lbfgs(m, x, OBJ_FROZEN, 6);
+		info.iterations += step.iterations; info.evaluations += step.evaluations;
+		if (step.status == FIT_NUMERICAL) { info.status=FIT_NUMERICAL; break; }
+	}
+	if (info.status == FIT_MAXIT) {
+		// the loop ran out: describe the point that is actually returned, not the one before the last step
+		info.k=compute_k(m, x, g, OBJ_FROZEN, 1);
+		info.evaluations++;
+		info.gmax=max_abs(g, m->np);
+		if (!isfinite(info.k) || !isfinite(info.gmax)) info.status=FIT_NUMERICAL;
+		else if (info.gmax < GTOL_ACCEPT*scale) info.status=FIT_CONVERGED;
+	}
+	info.converged=(info.status == FIT_CONVERGED);
+	free(g);
+	return info;
 }

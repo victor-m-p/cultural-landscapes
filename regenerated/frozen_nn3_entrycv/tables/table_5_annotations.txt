@@ -1,0 +1,30 @@
+\begin{tabular}{lll}
+recode_comm & entry_short & entry_name \\
+Group 1 & Cistercians & Greek Chalcedonian Christians, Nicaea \\
+Group 1 & Jesuits in Britain & Local Religion at Selinous \\
+Group 1 & Ancient Egypt & Ancient Egypt - the Ramesside Period \\
+Group 1 & Vaisnava & 16th-17th c. Gauḍīya Vaiṣṇava Tradition \\
+Group 1 & Islam in Aceh & Islam in Aceh \\
+Group 1 & Pre-Christian Ireland & Pre-Christian Religion / Paganism in Ireland \\
+Group 1 & Jehovah's Witnesses & The Branch Davidians \\
+Group 1 & Yiguan Dao & Yiguan Dao/I-Kuan Tao 一貫道 \\
+Group 1 & Muslims in UAE & Middle-Class Migrant Muslims in the UAE \\
+Group 1 & The Essenes & Tariqa Shadhiliyya \\
+Group 1 & Mesopotamia & Religion in Mesopotamia \\
+Group 1 & Calvinism & Edinoverie \\
+Group 1 & German Protestant & 19th century German Protestantism \\
+Group 1 & Roman Imperial & Roman Imperial Cult \\
+Group 1 & Tallensi & Tallensi \\
+Group 1 & Church of England & The Reformed Church (Early Orthodoxy) \\
+Group 1 & Valentinians & Valentinians \\
+Group 1 & Catholics in PRC & Chishti Sufis \\
+Group 1 & Sokoto & Sokoto \\
+Group 2 & Tsonga & Tsonga \\
+Group 2 & Luguru & Luguru \\
+Group 2 & Trumai & Mundurucu \\
+Group 3 & Free Methodist & Wesleyanism \\
+Group 3 & Southern Baptists & Southern Baptists \\
+Group 3 & Messalians & Messalians \\
+Group 3 & Pythagoreanism & Pythagoreanism \\
+Group 3 & Peyote Religion & Peyote Religion (Peyotism) and the Native American Church \\
+\end{tabular}
