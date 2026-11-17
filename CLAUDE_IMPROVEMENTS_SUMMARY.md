@@ -700,7 +700,7 @@ refuse to run in that state.
   Scoring held-out partial rows by their marginal likelihood would use all entries; it is not implemented.
 * **A comparison with another package** (bgms, in R) was made afterwards and is in the README at the top of
   the repository: neither method dominates, and on the real DRH data bgms predicts held-out entries
-  slightly better.
+  slightly better (than `--frozen` with N₁, N₂ or N₃ alike).
 * **No comparison with exact maximum likelihood.** At 20 questions the exact penalised likelihood — and
   with missing answers the exact marginal likelihood, which is consistent under MAR — is affordable, and is
   the natural benchmark for what MPF gives up. It was not run.

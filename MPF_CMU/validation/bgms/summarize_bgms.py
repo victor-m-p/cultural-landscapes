@@ -29,9 +29,13 @@ def block(title, T, mpf_cols, variants, group=lambda t: t % 4, group_names=names
 if os.path.exists(os.path.join(B, 'table1.jsonl')):
     T = load(os.path.join(B, 'table1.jsonl')); M = load(os.path.join(R, 'table1_nn1.jsonl'))
     Tb = {t: r['bgms'] for t, r in T.items()}
-    block("1. Complete data (the paper's Table 1 setting: 20 nodes, 128 rows). KL from the truth, mean ± standard error.",
-          Tb, {'mpf, cross-validated': {t: M[t]['kl_cv'] for t in M}, 'mpf, best possible lambda': {t: M[t]['kl_opt'] for t in M}}, ['select', 'full', 'matched'])
-    say("  paired differences in KL, bgms minus cross-validated mpf (negative: bgms closer to the truth)")
+    NN = {k: load(os.path.join(R, f'table1_nn{k}.jsonl')) for k in (2, 3)}        # the same landscapes with larger neighbourhoods
+    block("1. Complete data (the paper's Table 1 setting: 20 nodes, 128 rows). KL from the truth, mean ± standard error. (mpf with single-flip neighbours unless N2 or N3 is given.)",
+          Tb, {'mpf, cross-validated': {t: M[t]['kl_cv'] for t in M}, 'mpf, best possible lambda': {t: M[t]['kl_opt'] for t in M},
+               'mpf N2, cross-validated': {t: NN[2][t]['kl_cv'] for t in NN[2]}, 'mpf N3, cross-validated': {t: NN[3][t]['kl_cv'] for t in NN[3]}}, ['select', 'full', 'matched'])
+    for k in (2, 3):
+        say(f"  paired difference in KL, bgms select (predictive) minus cross-validated mpf N{k}:   " + "   ".join(f"{names[i]}: {paired([Tb[t]['select']['kl_predictive'] for t in sorted(Tb) if t % 4 == i], [NN[k][t]['kl_cv'] for t in sorted(Tb) if t % 4 == i])}" for i in range(4)))
+    say("  paired differences in KL, bgms minus cross-validated mpf with single-flip neighbours (negative: bgms closer to the truth)")
     for v, key in (('select', 'kl_mean'), ('select', 'kl_predictive'), ('full', 'kl_predictive'), ('matched', 'kl_predictive')):
         say(f"    {'bgms ' + v + (', predictive' if key == 'kl_predictive' else ''):28s} " + "   ".join(f"{names[i]}: {paired([Tb[t][v][key] for t in sorted(Tb) if t % 4 == i], [M[t]['kl_cv'] for t in sorted(Tb) if t % 4 == i])}" for i in range(4)))
     say("  bgms 95% credible intervals: fraction that contain the true value (couplings / fields), and mean width for couplings")
@@ -108,4 +112,12 @@ if os.path.exists(fitp) and os.path.getsize(fitp) > 0:
             say(f"    {label:30s} {v.mean():8.3f}   difference {paired(v, base)}   (complete entries only: {v[comp].mean():.3f}; entries with missing answers: {v[~comp].mean():.3f})")
         say(f"    median time per training fit on 4 cores: mpf --frozen {np.median([C[t]['mpf_frozen']['secs'] for t in C]):.0f} s, mpf --marginal {np.median([C[t]['mpf_marginal']['secs'] for t in C]):.0f} s, "
             f"bgms select {np.median([C[t]['bgms_select']['secs'] for t in C]):.0f} s, bgms full {np.median([C[t]['bgms_full']['secs'] for t in C]):.0f} s")
+    for nn in (2, 3):
+        p = os.path.join(B, f'drh_cv_nn{nn}.jsonl')
+        if os.path.exists(cvp) and os.path.exists(p):
+            N = load(p)
+            if sorted(N) == sorted(C):
+                v = np.concatenate([N[t]['logp'] for t in sorted(N)]); sel = cat('bgms_select', 'logp_predictive')
+                say(f"    {'mpf --frozen, NN=' + str(nn):30s} {v.mean():8.3f}   difference {paired(v, base)}   (complete entries only: {v[comp].mean():.3f}; entries with missing answers: {v[~comp].mean():.3f})"
+                    f"   bgms select predictive minus this: {paired(sel, v)};  median time per training fit {np.median([N[t]['secs'] for t in N]):.0f} s (6 cores); mean log10 lambda {np.mean([N[t]['lam'] for t in N]):.3f}")
 open(os.path.join(B, 'summary.txt'), 'w').write("\n".join(out) + "\n")

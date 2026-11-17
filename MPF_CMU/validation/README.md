@@ -69,6 +69,8 @@ take from it are in the README at the top of the repository. Needs R with bgms (
 ./run_table.sh bgms/bgms_trial.py 0 39 8 results/bgms/drhboot.jsonl "drhboot 4"
 ./run_table.sh bgms/mpf_timing.py 0 15 4 results/bgms/mpf_timing.jsonl 4
 ./run_table.sh bgms/bgms_drh.py 0 9 10 results/bgms/drh_cv.jsonl "cv 4"
+./run_table.sh bgms/bgms_drh.py 0 9 10 results/bgms/drh_cv_nn2.jsonl "cvnn 2 6"
+./run_table.sh bgms/bgms_drh.py 0 9 10 results/bgms/drh_cv_nn3.jsonl "cvnn 3 6"     # about 3.5 hours per fold
 python3 bgms/bgms_drh.py fit 4 > results/bgms/drh_fit.json
 python3 bgms/summarize_bgms.py
 ```
@@ -79,7 +81,7 @@ python3 bgms/summarize_bgms.py
 | `bgms/bgms_check.py` | Checks that conversion against a known model. | — |
 | `bgms/bgms_trial.py ID LO HI table1\|table3\|drhboot` | bgms on exactly the datasets of the Table 1 and Table 3 re-runs (paired with the stored `mpf` results by trial id), and bgms and cross-validated `mpf` on DRH-like bootstrap data: KL from the truth, coverage of bgms's intervals, time. | `results/bgms/table1.jsonl`, `table3.jsonl`, `drhboot.jsonl` |
 | `bgms/mpf_timing.py` | Times `mpf -c` on the Table 1 datasets with the same four cores bgms is given. | `results/bgms/mpf_timing.jsonl` |
-| `bgms/bgms_drh.py fit` and `FOLD _ _ cv` | Both programs on the real DRH data, one row per entry: fits to all entries, and a 10-fold cross-validation scored by the probability of held-out entries. | `results/bgms/drh_fit.json`, `drh_cv.jsonl`, `drh/` |
+| `bgms/bgms_drh.py fit`, `FOLD _ _ cv` and `FOLD _ _ cvnn NN` | Both programs on the real DRH data, one row per entry: fits to all entries, and a 10-fold cross-validation scored by the probability of held-out entries. `cvnn` runs the same folds for `mpf --frozen` alone with neighbourhood `NN`. | `results/bgms/drh_fit.json`, `drh_cv.jsonl`, `drh_cv_nn2.jsonl`, `drh_cv_nn3.jsonl`, `drh/` |
 | `bgms/summarize_bgms.py` | The summary. | `results/bgms/summary.txt` |
 
 ## Checks on the code itself

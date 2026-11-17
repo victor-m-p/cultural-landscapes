@@ -35,14 +35,16 @@ The full account, including the errors found, which of them reach the paper, the
 
 [bgms](https://cran.r-project.org/package=bgms) is an R package from Maarten Marsman's group, first released in April 2023, three months after our paper. For yes/no data it fits the same Ising model as `mpf`, by a different route: it is Bayesian, it uses a pseudo-likelihood sampled by MCMC instead of minimising probability flow, and it regularises with a fixed prior instead of a penalty chosen by cross-validation. It can also estimate, for each coupling, the probability that it is present at all ("edge selection", on by default), and it treats missing answers either by dropping incomplete rows (its default) or by imputing them while it samples.
 
-We compared bgms 0.2.0.0 with the revised `mpf` on identical data, giving each 4 cores. On simulated data the measure is the KL divergence from the true distribution (lower is better); for bgms it is computed for the posterior predictive distribution, which is the more favourable of the two ways of scoring it.
+We compared bgms 0.2.0.0 with the revised `mpf` on identical data, giving each 4 cores. `mpf` uses single-flip neighbours (N₁) except where N₂ or N₃ is named. On simulated data the measure is the KL divergence from the true distribution (lower is better); for bgms it is computed for the posterior predictive distribution, which is the more favourable of the two ways of scoring it.
 
 **Simulated data, 20 questions** (16 landscapes per regime; the DRH sits in the weakly coupled regimes on the left):
 
 | | dispersed | ordered | near-critical | critical |
 |---|---|---|---|---|
 | *128 complete rows* | | | | |
-| `mpf`, cross-validated | **0.21** | **0.56** | **0.60** | 0.59 |
+| `mpf`, cross-validated | **0.21** | **0.56** | 0.60 | 0.59 |
+| `mpf` with two-flip neighbours (N₂) | **0.21** | 0.57 | **0.56** | 0.45 |
+| `mpf` with three-flip neighbours (N₃) | **0.21** | 0.58 | **0.56** | **0.40** |
 | bgms, defaults | 0.64 | 0.91 | 0.73 | **0.39** |
 | bgms, no edge selection | 1.09 | 1.08 | 1.03 | 0.40 |
 | bgms, prior set to the true scale of the couplings (an oracle choice) | 0.29 | 0.65 | 0.72 | 0.50 |
@@ -67,14 +69,16 @@ We compared bgms 0.2.0.0 with the revised `mpf` on identical data, giving each 4
 |---|---|---|---|
 | `mpf --frozen` | −6.85 | — | 6 min |
 | `mpf --marginal` | −6.85 | 0.00 ± 0.01 | 2 min |
+| `mpf --frozen` with two-flip neighbours (N₂) | −6.84 | +0.01 ± 0.01 | 33 min (6 cores) |
+| `mpf --frozen` with three-flip neighbours (N₃) | −6.85 | 0.00 ± 0.01 | 3.5 h (6 cores) |
 | bgms, imputing | **−6.79** | +0.06 ± 0.02 | 50 s |
 | bgms, imputing, no edge selection | −6.87 | −0.02 ± 0.02 | 50 s |
 | bgms, default (drops incomplete rows) | −7.33 | −0.48 ± 0.06 | 17 s |
 
 What we take from this:
 
-* **Neither method dominates.** With few observations and weak couplings, how strongly the fit is regularised matters more than how it is computed. `mpf` chooses that from the data and is clearly better on the simulations (in every one of the 32 weakly coupled landscapes); bgms's fixed prior is too loose there, and setting it to the right scale closes most of the gap. With strong couplings bgms is better.
-* **On the real DRH data bgms predicts held-out entries slightly better than `mpf`**, provided edge selection and imputation are both on, and it is several times faster when answers are missing. (On complete data the two take the same time: about 15 s for 128 rows.) The simulated DRH-like data point the other way, but their "truth" is a dense model fitted by `mpf`, which favours `mpf`; the real data appear to be sparser than that. bgms puts 73 of the 190 couplings above an inclusion probability of one half, and 34 above 0.9.
+* **Neither method dominates.** With few observations and weak couplings, how strongly the fit is regularised matters more than how it is computed. `mpf` chooses that from the data and is clearly better on the simulations (in every one of the 32 weakly coupled landscapes); bgms's fixed prior is too loose there, and setting it to the right scale closes most of the gap. With strong couplings bgms is better than `mpf` with single-flip neighbours, but that is a property of N₁: with three-flip neighbours `mpf` matches bgms in the critical regime (0.40 against 0.39; difference −0.01 ± 0.03) and stays ahead everywhere else. With missing answers and strong couplings bgms's lead (0.32 against 0.47) has only been tested against N₁.
+* **On the real DRH data bgms predicts held-out entries slightly better than `mpf`**, provided edge selection and imputation are both on, and it is several times faster when answers are missing. (On complete data the two take the same time: about 15 s for 128 rows.) Larger neighbourhoods do not change this: N₂ and N₃ predict no better than N₁ here, as expected for weakly coupled data, bgms stays ahead of both by 0.05 ± 0.02, and they cost far more time. The simulated DRH-like data point the other way, but their "truth" is a dense model fitted by `mpf`, which favours `mpf`; the real data appear to be sparser than that. bgms puts 73 of the 190 couplings above an inclusion probability of one half, and 34 above 0.9.
 * **bgms must be told to impute.** Its default of dropping incomplete rows discards more than half of the DRH entries and is much the worst option on every test.
 * **bgms reports uncertainty, which `mpf` does not, but its intervals are too narrow.** Its 95% intervals contained the true coupling 71–85% of the time on the complete simulated data and 82% of the time on the DRH-like data (86–94% for the fields).
 * **The two landscapes of the DRH differ more than any two `mpf` variants do.** The couplings from bgms and from `mpf --frozen` correlate 0.84 (against 0.99 between `mpf` variants) and share 9 of the 15 strongest couplings and 129 of the 150 most probable configurations, although `mpf`'s estimate lies inside bgms's interval for 188 of the 190 couplings. Statements about individual couplings are therefore less secure than the agreement among `mpf` variants suggests.

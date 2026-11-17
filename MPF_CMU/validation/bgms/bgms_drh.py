@@ -9,13 +9,16 @@ expand an inconsistently coded entry into several weighted rows; bgms has no row
                      held-out entries by the exact log-probability of their observed answers (summing over
                      the missing ones). (The argument order of every trial script, so that ../run_table.sh
                      can run it; the two arguments after the fold are ignored.)
+  FOLD _ _ cvnn NN   the same fold with mpf --frozen alone, at neighbourhood NN (2 or 3), to see whether a
+                     larger neighbourhood changes the comparison
 
 Methods: mpf --frozen, mpf --marginal (lambda by leave-one-out cross-validation within the training data);
 bgms with missing answers imputed, with edge selection (`select`, the default) and without (`full`); bgms
 with its default of dropping incomplete entries (`listwise`). For bgms the held-out score is given for the
 posterior-mean parameters and for the posterior predictive distribution (average over 100 draws).
 
-Usage: BGMS_LIB=/path/to/R/library python3 bgms_drh.py fit [cores]  |  FOLD _ _ cv [cores]     (prints JSON; files go to ../results/bgms/drh)
+Usage: BGMS_LIB=/path/to/R/library python3 bgms_drh.py fit [cores]  |  FOLD _ _ cv [cores]  |  FOLD _ _ cvnn NN [cores]
+(prints JSON; files go to ../results/bgms/drh)
 """
 import os, shutil, sys, tempfile, time
 import numpy as np
@@ -65,6 +68,13 @@ with tempfile.TemporaryDirectory() as td:
         for k, v in res.items():
             out[k] = {a: (v[a] if not isinstance(v[a], np.ndarray) else None) for a in v if a not in ('theta', 'draws', 'lo', 'hi', 'inclusion')}
         emit(out)
+    elif sys.argv[4] == 'cvnn':
+        fold = int(sys.argv[1]); nn = int(sys.argv[5]); cores = int(sys.argv[6]) if len(sys.argv) > 6 else 4
+        perm = np.random.default_rng(2026).permutation(len(rows)); test = perm[fold::10]; train = np.setdiff1d(perm, test)
+        write_data('train.dat', n, [r + " 1.0" for r in rows[train]])
+        t = time.time(); f, lam, cv = fit_cv('train.dat', ('--frozen',), tag='frozen', threads=cores, nn=nn)
+        lq = log_probs(n, np.loadtxt(f).ravel())
+        emit(dict(mode='cvnn', tid=fold, nn=nn, n_test=len(test), lam=lam, secs=round(time.time() - t, 1), logp=[heldout_logp(lq, r) for r in rows[test]], **cv))
     else:
         fold = int(sys.argv[1]); cores = int(sys.argv[5]) if len(sys.argv) > 5 else 4
         perm = np.random.default_rng(2026).permutation(len(rows)); test = perm[fold::10]; train = np.setdiff1d(perm, test)

@@ -209,13 +209,13 @@ def fit_fixed(datafile, log_sparsity, flags=(), tag='fit', nn=1):
     out, err = run(['-l', copy, log_sparsity, nn, *flags])
     return copy + '_params.dat', fit_end(out)[0]
 
-def fit_cv(datafile, flags=(), tag='cv', threads=None):
+def fit_cv(datafile, flags=(), tag='cv', threads=None, nn=1):
     """Cross-validated fit; returns (parameter file, chosen log-sparsity, details). The details are the number
     of warnings printed during the search, and the number of folds and of fold fits that did not converge at
     the lambda that was chosen."""
     copy = f"{datafile}.{tag}"
     shutil.copy(datafile, copy)
-    out, err = run(['-c', copy, 1, *flags], threads=threads)
+    out, err = run(['-c', copy, nn, *flags], threads=threads)
     lam = float(re.findall(r'Best log_sparsity: (\S+)', out)[-1])
     m = re.search(r'at the chosen log-sparsity: (\d+) folds, (\d+) with a fit that did not converge', out)
     return copy + '_params.dat', lam, dict(warnings=count_warnings(err), folds=int(m.group(1)), cv_not_converged=int(m.group(2)))
