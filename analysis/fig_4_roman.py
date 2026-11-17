@@ -55,6 +55,7 @@ h_distances = h_distances[h_distances['hamming'] == 1]
 
 # create network
 G = nx.from_pandas_edgelist(h_distances, 'node_x', 'node_y', 'hamming')
+G.add_nodes_from(val['node_id'] for val in node_attr_dict.values()) # a configuration with no single-flip neighbour here has no edge
 pos = nx.nx_agraph.graphviz_layout(G, prog="fdp")
 
 # add all node information
@@ -102,17 +103,7 @@ position_annotations = {
 d_annot = (pd.DataFrame.from_dict(entryname_annotations, orient='index', columns=['entry_name_short'])
     .assign(entry_id=lambda x: x.index)
     .merge(annotations, on=['entry_id'], how='inner'))
-# one label per entry: its most probable configuration among the nodes that an earlier entry in the
-# list has not already taken (the same rule as in fig_4_methodist.py; for the published fit it gives
-# the selection that used to be written as row numbers).
-keep, used_nodes = [], set()
-for entry_id in entryname_annotations:
-    candidates = d_annot[(d_annot['entry_id'] == entry_id) & ~d_annot['node_id'].isin(used_nodes)]
-    if len(candidates) > 0:
-        best = candidates['entry_prob'].idxmax()
-        keep.append(best)
-        used_nodes.add(d_annot.loc[best, 'node_id'])
-d_annot = d_annot.loc[keep]
+d_annot = one_label_per_entry(d_annot, entryname_annotations)
 
 # main plot 
 cols = {0: '#c99700', 1: '#EBCC2A', 2: '#f7d15c'}

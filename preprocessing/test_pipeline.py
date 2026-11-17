@@ -67,7 +67,7 @@ with tempfile.TemporaryDirectory() as td:
     out = pd.read_csv(os.path.join(td, 'data', 'preprocessing', 'data_expanded.csv'))
     assert np.array_equal(out[['entry_id', 'config_id']].values, committed[['entry_id', 'config_id']].values)
     assert np.allclose(out['entry_prob'].values, committed['entry_prob'].values, rtol = 1e-10)
-    assert np.array_equal(np.loadtxt(os.path.join(td, 'data', 'preprocessing', 'matrix_expanded.txt'), dtype = int), np.array(mats))
+    assert np.array_equal(np.loadtxt(os.path.join(td, 'data', 'preprocessing', 'matrix_expanded.txt'), dtype = int), np.loadtxt(os.path.join(data, 'preprocessing', 'matrix_expanded.txt'), dtype = int))
 print('expand_data.py reproduces the committed data_expanded.csv and matrix_expanded.txt')
 
 # --- curation ---

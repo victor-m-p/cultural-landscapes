@@ -9,7 +9,7 @@ caught by unit           marginal flows along missing nodes
 caught by unit+cli       penalty scaling
 caught by unit+cli       duplicate rows not summed
 caught by unit+cli       frozen weights not frozen (NN>1 routine)
-caught by unit+cli       frozen weights not frozen (NN=1 routine)
+caught by unit           frozen weights not frozen (NN=1 routine)
 caught by unit+cli       sign of field gradient (partial rows)
 caught by unit+cli       sign of field gradient (complete rows)
 caught by cli            0 read as yes
@@ -17,9 +17,9 @@ caught by unit+cli       completions not enumerated
 SURVIVED                 non-finite gradient not detected
 caught by unit+cli       non-finite start not reported
 caught by cli            every fit reported as converged
-caught by cli            non-finite parameters accepted
-caught by unit+cli       multi-flip: pair correction to the flow
-caught by unit+cli       multi-flip: coupling gradient ignores sets containing both ends
+SURVIVED                 non-finite numbers accepted
+caught by unit           multi-flip: pair correction to the flow
+caught by unit           multi-flip: coupling gradient ignores sets containing both ends
 caught by unit           multi-flip: marginal coupling gradient
 caught by unit+cli       multi-flip: penalty not scaled by the number of neighbours
 caught by unit+cli       NN argument ignored
@@ -32,12 +32,14 @@ caught by unit           -z bit order
 caught by unit           Monte Carlo acceptance sign
 caught by unit           CV ignores weights
 caught by unit           held-out row left in the training set
-caught by unit           folds with missing data start from the full-data fit
-caught by unit           stage-1 fold fit includes the held-out row
+caught by unit           folds skip their first stage
+caught by unit           the first stage of a fold includes the row it holds out
+caught by unit+cli       a seed whose low 32 bits are zero leaves the generator at zero
+caught by cli            integers (on the command line and in files) not range-checked
+caught by unit           integration with no intervals allowed
 caught by unit+cli       search picks the worst grid point
 caught by unit           search returns a value when every candidate is invalid
 caught by unit           search never extends below -2
 caught by unit           groups with partial rows held out
 caught by cli            --legacy does not select the legacy objective
-caught by cli            integer arguments not range-checked
-41 of 42 injected bugs caught
+42 of 44 injected bugs caught

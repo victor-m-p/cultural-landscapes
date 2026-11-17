@@ -1,5 +1,5 @@
 #!/bin/bash
-# Refit the DRH data in several ways. Run from anywhere after `make` in MPF_CMU. Inputs are copied from
+# Refit the DRH data in several ways. Run from anywhere after `make` in MPF_CMU/src. Inputs are copied from
 # the committed data file, so this works in a clean checkout; nothing outside this directory is written.
 #   legacy            the published procedure (reproduces data/mdl_experiments/..._params.dat)
 #   marginal          marginal objective, weighted row-wise cross-validation (the default)
@@ -9,7 +9,7 @@
 #   legacy_nn2        the published procedure with NN=2
 set -euo pipefail
 cd "$(dirname "$0")"
-MPF=../../../mpf
+MPF=../../../src/mpf
 SRC=../../../../data/mdl_experiments/matrix_questions_20_maxna_5_nrows_455_entries_407.txt.mpf
 REF=../../../../data/reference/direct_reference_questions_20_maxna_5_nrows_455_entries_407.csv
 # one entry id per data row (the reference file lists the rows in the same order as the data file)

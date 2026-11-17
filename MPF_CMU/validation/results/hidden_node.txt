@@ -1,0 +1,32 @@
+5 visible nodes + 1 hidden node (missing in every row); infinite data; optimiser (BFGS, numerical gradient) started at the truth
+ beta seed objective  |gradient| at truth      optimiser  |gradient| at end KL of visible distribution  |J to hidden|: end / true  largest |parameter| at end
+ 0.25    1 legacy                2.42e-01 not converged (2)           3.32e-06                   2.37e-02                    222.703                        68.1
+ 0.25    1 frozen                1.17e-09      converged           1.17e-09                   0.00e+00                      1.000                         0.3
+ 0.25    1 marginal              8.88e-10      converged           8.88e-10                   0.00e+00                      1.000                         0.3
+           legacy objective at the truth 4.658092, at the optimiser's end point 3.779972, and 2 and 4 times as far along the same direction 3.806775, 4.058744
+
+ 0.25    2 legacy                3.19e-01      converged           2.13e-08                   9.53e-02                     54.367                        38.2
+ 0.25    2 frozen                1.17e-09      converged           1.17e-09                   0.00e+00                      1.000                         0.6
+ 0.25    2 marginal              0.00e+00      converged           0.00e+00                   0.00e+00                      1.000                         0.6
+           legacy objective at the truth 4.291340, at the optimiser's end point 3.557568, and 2 and 4 times as far along the same direction 3.569229, 3.663664
+
+ 0.50    1 legacy                2.47e-01 not converged (2)           1.61e-06                   1.24e-01                    142.241                       102.1
+ 0.50    1 frozen                8.31e-10      converged           8.31e-10                   0.00e+00                      1.000                         0.7
+ 0.50    1 marginal              4.44e-10      converged           4.44e-10                   0.00e+00                      1.000                         0.7
+           legacy objective at the truth 3.852870, at the optimiser's end point 3.304693, and 2 and 4 times as far along the same direction 3.323334, (overflows)
+
+ 0.50    2 legacy                2.30e-01 not converged (2)           2.17e-08                   1.17e+01                    234.397                       228.8
+ 0.50    2 frozen                6.28e-10      converged           6.28e-10                   0.00e+00                      1.000                         1.2
+ 0.50    2 marginal              6.28e-10      converged           6.28e-10                   0.00e+00                      1.000                         1.2
+           legacy objective at the truth 3.060136, at the optimiser's end point 2.666185, and 2 and 4 times as far along the same direction (overflows), (overflows)
+
+ 1.00    1 legacy                8.32e-02 not converged (2)           5.08e-07                   3.46e-01                     48.755                        59.1
+ 1.00    1 frozen                5.87e-10      converged           5.87e-10                   0.00e+00                      1.000                         1.3
+ 1.00    1 marginal              4.97e-10      converged           4.97e-10                   0.00e+00                      1.000                         1.3
+           legacy objective at the truth 2.469635, at the optimiser's end point 2.023536, and 2 and 4 times as far along the same direction 2.099119, 3.335454
+
+ 1.00    2 legacy                5.87e-02      converged           2.77e-09                   8.87e-03                     21.682                        28.2
+ 1.00    2 frozen                7.02e-10      converged           7.02e-10                   0.00e+00                      1.000                         2.4
+ 1.00    2 marginal              4.44e-10      converged           4.44e-10                   0.00e+00                      1.000                         2.4
+           legacy objective at the truth 1.880884, at the optimiser's end point 0.925507, and 2 and 4 times as far along the same direction 1.097014, 6.010642
+

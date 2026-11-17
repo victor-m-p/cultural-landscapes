@@ -1,6 +1,7 @@
-legacy: Best log_sparsity: 0.207018  Wall time: 19.684 seconds.  warnings: 0
-marginal: Best log_sparsity: 0.169750  Wall time: 20.129 seconds.  warnings: 0
-marginal_entrycv: Best log_sparsity: 0.195048  Wall time: 15.359 seconds.  warnings: 0
-frozen_entrycv: Best log_sparsity: 0.128537  Wall time: 41.675 seconds.  warnings: 0
-legacy_nn2: Best log_sparsity: 0.258001  Wall time: 63.633 seconds.  warnings: 0
-frozen_entrycv_nn2: Best log_sparsity: 0.187091  Wall time: 187.789 seconds.  warnings: 0
+legacy: Best log_sparsity: 0.207018  Wall time: 23.806 seconds.  warnings: 0
+marginal: Best log_sparsity: 0.169923  Wall time: 26.085 seconds.  warnings: 0
+marginal_entrycv: Best log_sparsity: 0.195048  Wall time: 23.650 seconds.  warnings: 0
+frozen_entrycv: Best log_sparsity: 0.127631  Wall time: 63.059 seconds.  warnings: 0
+frozen_entrycv_nn2: Best log_sparsity: 0.215881  Wall time: 451.099 seconds.  warnings: 0
+frozen_entrycv_nn3: Best log_sparsity: 0.214415  Wall time: 2460.510 seconds.  warnings: 0
+legacy_nn2: Best log_sparsity: 0.257894  Wall time: 57.908 seconds.  warnings: 0

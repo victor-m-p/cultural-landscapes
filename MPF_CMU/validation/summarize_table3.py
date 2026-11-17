@@ -2,17 +2,15 @@
 Usage: python3 summarize_table3.py      (output also in results/table3_summary.txt)"""
 import os
 import numpy as np
-from common import load_trials
+from common import load_trials, REGIME_NAMES as names, se
 here = os.path.dirname(os.path.abspath(__file__)); R = os.path.join(here, 'results')
 cols = {}
 for f, keys in (('table3_complete_columns.jsonl', ('base', 'full', 'naive')), ('table3_legacy.jsonl', ('partial_legacy',)),
                 ('table3_marginal.jsonl', ('partial_marginal',)), ('table3_frozen.jsonl', ('partial_frozen',))):
     for r in load_trials(os.path.join(R, f)):
         for k in keys: cols.setdefault(k, {})[r['tid']] = r[k]
-names = ['dispersed', 'ordered', 'near-critical', 'critical']
 label = dict(base='128 full', partial_legacy='published', partial_marginal='marginal', partial_frozen='frozen', naive='naive', full='256 full')
 order = ['base', 'partial_legacy', 'partial_marginal', 'partial_frozen', 'naive', 'full']
-se = lambda a: a.std(ddof=1) / np.sqrt(len(a)) if len(a) > 1 else float('nan')
 out = []
 def say(s):
     print(s); out.append(s)

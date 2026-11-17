@@ -8,37 +8,16 @@ import numpy as np
 import pandas as pd 
 from matplotlib import pyplot as plt
 from scipy.cluster.hierarchy import dendrogram
-from sklearn.datasets import load_iris
 from sklearn.cluster import AgglomerativeClustering
 
 # https://scikit-learn.org/stable/auto_examples/cluster/plot_agglomerative_dendrogram.html
 def plot_dendrogram(model, **kwargs):
-    # Create linkage matrix and then plot the dendrogram
-
-    # create the counts of samples under each node
-    counts = np.zeros(model.children_.shape[0])
-    n_samples = len(model.labels_)
-    for i, merge in enumerate(model.children_):
-        current_count = 0
-        for child_idx in merge:
-            if child_idx < n_samples:
-                current_count += 1  # leaf node
-            else:
-                current_count += counts[child_idx - n_samples]
-        counts[i] = current_count
-
-    linkage_matrix = np.column_stack(
-        [model.children_, model.distances_, counts]
-    ).astype(float)
-
-    if kwargs.pop('return_linkage', False):
-        return linkage_matrix
-    return dendrogram(linkage_matrix, **kwargs)
+    return dendrogram(linkage_matrix(model), **kwargs)
 
 # load configurations 
 configurations = np.loadtxt('../data/preprocessing/configurations.txt', dtype = int)
 n_top_states = 150  
-from fun import top_n_idx
+from fun import top_n_idx, linkage_matrix
 
 # find the top 150 states 
 config_prob = np.loadtxt('../data/preprocessing/configuration_probabilities.txt')
@@ -117,10 +96,9 @@ leaf_dataframe = pd.DataFrame(
 # three reproduces the grouping that later scripts used to hard-code for the published fit, and
 # is defined for any set of parameters.
 from scipy.cluster.hierarchy import fcluster
-linkage_matrix = plot_dendrogram(model, return_linkage = True)
 clade_dataframe = pd.DataFrame(
     {'node_id': np.arange(len(model.labels_)),
-     'node_clade': fcluster(linkage_matrix, 3, 'maxclust')}
+     'node_clade': fcluster(linkage_matrix(model), 3, 'maxclust')}
 )
 clade_dataframe.to_csv('../data/analysis/dendrogram_clades.csv', index = False)
 

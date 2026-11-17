@@ -1,7 +1,7 @@
-"""Recompute the paper's Partial-MPF table from the simulation logs committed in ../NAN_TESTS."""
+"""Recompute the paper's Partial-MPF table from the simulation logs committed in ../paper_runs/NAN_TESTS."""
 import ast, glob, os, statistics as st
 rows = []
-for f in sorted(glob.glob(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'NAN_TESTS', 'big_NAN_scan_experimental_20_5_*'))):
+for f in sorted(glob.glob(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'paper_runs', 'NAN_TESTS', 'big_NAN_scan_experimental_20_5_*'))):
     m = [l for l in open(f).read().split('\n') if l.startswith('[[')]
     if m: rows += ast.literal_eval(m[-1])
 print(f"{len(rows)} trials in the committed logs (n=20, 5 missing); mean KL from truth")

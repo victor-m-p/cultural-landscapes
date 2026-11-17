@@ -2,9 +2,10 @@
 
 This is a re-examination, in November 2026, of the code and methods behind "Inferring Cultural Landscapes
 with the Inverse Ising Model" (Poulsen & DeDeo, *Entropy* 25(2), 264, 2023). It was carried out by Claude
-(Anthropic) working with Simon DeDeo. A first version was reviewed independently by Codex (OpenAI); that
-review is in [`CODEX_REVIEW_OF_CLAUDE.md`](CODEX_REVIEW_OF_CLAUDE.md), all ten of its findings were
-confirmed, and Section 10 records how each was handled.
+(Anthropic) working with Simon DeDeo. It was reviewed twice, independently, by Codex (OpenAI): a first
+version ([`CODEX_REVIEW_OF_CLAUDE.md`](CODEX_REVIEW_OF_CLAUDE.md)) and a later one
+([`CODEX_REVIEW_OF_CLAUDE_2026-11-16.md`](CODEX_REVIEW_OF_CLAUDE_2026-11-16.md)). Every finding of both
+reviews that was tested was confirmed; Section 10 records how each was handled.
 
 The repository now contains the revised code. The published code is in the git history (commit `23dce37`
 and earlier), and the published results can still be reproduced with the `--legacy` option.
@@ -29,15 +30,19 @@ Section 2.3.5 of the paper is a bias that does not go away with more data. Two r
 implemented at the same computational order:
 
 * `--marginal` (the default): MPF on the marginal distribution of the answers that were observed — the
-  published formula with a square root moved outside an average. Correct when blanks are unrelated to any
-  answer.
+  published formula with a square root moved outside an average. With unlimited data its minimum is at the
+  true parameters when blanks are unrelated to any answer.
 * `--frozen`: the weights on the possible completions are held fixed while minimising, then re-estimated,
-  to a fixed point. Correct under the weaker condition that blanks may depend on *other, observed* answers.
-  It is slower and is not the minimum of a single function.
+  to a fixed point. With unlimited data the true parameters solve its equation under the weaker condition
+  that blanks may depend on *other, observed* answers. It is slower and is not the minimum of a single
+  function, and nothing shows that the solution is unique or that the iteration finds it.
 
 **In the DRH data, blanks do depend on other answers** (for example, cultures with a blank somewhere have
-scriptures 53% of the time, against 89% for fully answered ones), so `--frozen` is the appropriate method
-there, and fully answered entries are not a representative sample.
+scriptures 53% of the time, against 89% for fully answered ones), so fully answered entries are not a
+representative sample and the condition that `--marginal` needs fails. Of the three variants only
+`--frozen` has a justification that could apply, and it applies only if blanks depend on observed answers
+alone, which the data cannot show. No experiment here says which variant is closest to the unknown truth
+for the DRH.
 
 **At the paper's sample sizes the choice makes little practical difference.** The three methods give KL
 divergences within a few percent of each other on simulated data of the DRH's size, and the published
@@ -71,19 +76,19 @@ parameter file with one command.
 ## 2. What to use
 
 ```
-cd MPF_CMU && make && make test
+cd MPF_CMU/src && make && make test
 ```
 
 | purpose | command |
 |---|---|
-| Fit data with missing answers (recommended for the DRH) | `./mpf -c DATA 1 --frozen --groups GROUPS` |
+| Fit data whose blanks may depend on other, observed answers (as the DRH's do) | `./mpf -c DATA 1 --frozen --groups GROUPS` |
 | Reproduce the published fit | `./mpf -c DATA 1 --legacy` |
 | Complete data only, or blanks known to be unrelated to answers | `./mpf -c DATA 1` |
 | Two- or three-flip neighbourhoods | replace `1` by `2` or `3` |
 | Regenerate every figure and table from a parameter file | `python analysis/regenerate.py PARAMS OUTDIR` |
 
 `GROUPS` has one integer per data row; rows from the same DRH entry (the expansions of an inconsistently
-coded entry) share an id and are held out together in cross-validation. `MPF_CMU/README.md` documents all
+coded entry) share an id and are held out together in cross-validation. `MPF_CMU/src/README.md` documents all
 options, and a table there states what each missing-data option assumes.
 
 ## 3. Missing data: the "slight tension" and two replacements
@@ -160,7 +165,7 @@ Call the blanks *MCAR* (missing completely at random) if which answers are blank
 any of its answers, and *MAR* (missing at random) if it may depend on the answers observed in that row but
 not on the missing ones.
 
-**Marginal MPF is consistent under MCAR, not under MAR.** For a fixed pattern of blanks, pair the two
+**Marginal MPF: the truth minimises the population objective under MCAR, not under MAR.** For a fixed pattern of blanks, pair the two
 directions of each edge (o, o^k) of the observed sub-cube. With row probabilities p_a, p_b and model ratio
 r = p_θ(o^k)/p_θ(o), their contribution is p_a √r + p_b/√r ≥ 2 √(p_a p_b), with equality exactly at
 r = p_b/p_a. So the unpenalised population objective is minimised, globally, exactly by the parameters
@@ -170,7 +175,7 @@ together identify the model (for example, if complete rows occur). Under MAR the
 are a *selected* sample — their distribution is proportional to p(o) P(pattern | o) — and the minimiser
 matches that instead.
 
-**The frozen-weight fixed point is consistent under MAR, for any neighbourhood.** Under MAR, a row's
+**Frozen weights: the truth solves the population equation under MAR, for any neighbourhood.** Under MAR, a row's
 observed part combined with the model's distribution over its completions reproduces, summed over all
 patterns of blanks, the true joint distribution: Σ_patterns P(pattern | x) p(x) = p(x). So if every
 completed state sends flows to *all* its neighbours, the left side of the equation above, at the true
@@ -185,7 +190,7 @@ that mistake and was off by 0.25 in the parameters on an exact test case.
 This shows the truth solves the equation; it does not show that the solution is unique or that the
 iteration converges to it.
 
-**The published objective** is consistent under neither. **None of the three** is right if whether an
+**The published objective** has neither property. **None of the three** is right if whether an
 answer is missing depends on that answer. And fitting only the complete rows — stage one of every fit, and
 the paper's "128 full" baseline — is itself biased under MAR, because which rows are complete then depends
 on their content.
@@ -198,7 +203,7 @@ between them inform every coupling.
 
 ### Evidence
 
-*Exact population data (no sampling)* — largest error in any parameter (`tests/test_mpf.c`):
+*Exact population data (no sampling)* — largest error in any parameter (`MPF_CMU/src/tests/test_mpf.c`):
 
 | setting | published | marginal | frozen |
 |---|---|---|---|
@@ -248,8 +253,24 @@ Reading these together: with a few hundred rows sampling noise dominates. The pu
 towards stronger couplings then does little harm, and when couplings are strong it helps slightly, while
 the frozen-weight iteration is the worst of the three by up to 0.05. On data shaped like the DRH the two
 replacements are 1.5% better than the published objective and indistinguishable from each other. With
-thousands of rows the order is clear: frozen ≥ marginal ≫ published, and under MAR both the published
-objective and complete-rows-only fitting are far off.
+thousands of rows both replacements beat the published objective in every setting tested, and under the
+MAR mechanism tested the frozen-weight iteration is clearly the best while the published objective and
+complete-rows-only fitting are far off. Between the two replacements there is no general order: under MCAR
+the marginal objective is sometimes ahead (by 24% in one 16,384-row case).
+
+*A node that is never observed* — the extreme case of missing data, and the way hidden units are added to
+these models. On exact population data from six models with 5 visible nodes and 1 hidden node, without
+regularisation (`validation/hidden_node_check.py`, independent of the C code): the marginal objective and
+the frozen-weight equation are stationary at the truth (gradient below 2e-9), and an optimiser started
+there stays there. The published objective is not stationary at the truth (gradient 0.06–0.32). That is
+the evidence of bias, and it does not depend on any optimisation. To see its size, an optimiser started at
+the truth was followed: it ends with the couplings to the hidden node 20–230 times their true size, the
+objective 13–51% lower than at the truth, and the distribution of the visible nodes wrong by a KL of 0.009
+to 12. Those end points have gradients below 4e-6 and the objective rises again beyond them, but the
+optimiser reported convergence in only two of the six cases, so they are approximate, not established
+minima. Regularisation limits this in practice, and none of it shows what the corrected methods do from an
+ordinary starting point; but fits with hidden nodes made with the published objective should be treated
+with caution.
 
 ### Are the DRH blanks related to the answers?
 
@@ -283,7 +304,7 @@ commented-out N₂ rows for Table 1, so N₂ had been run with an earlier versio
 It is implemented again, for all three treatments of missing data, with a multi-flip flow computed from
 the same local fields as single flips (the flow for flipping a set A is
 exp(−Σ_{k∈A} x_k + 2 Σ_{k<l∈A} J_kl s_k s_l), with x_k = s_k × the local field). On complete data the new
-code agrees to 7e-7 with the published code after its commented-out blocks are re-enabled, for NN=1, 2, 3.
+code agrees to 2e-7 with the published code after its commented-out blocks are re-enabled, for NN=1, 2, 3.
 
 Table 1 of the paper re-run on the same 160 landscapes at each NN (20 questions, 128 observations, exact
 sampling; KL from the truth with cross-validated λ):
@@ -295,8 +316,8 @@ sampling; KL from the truth with cross-validated λ):
 | near-critical | 0.631 | 0.578 | 0.568 | −0.053 ± 0.008 | −0.063 ± 0.012 | 0.63 | 0.59 |
 | critical | 0.538 | 0.430 | 0.398 | −0.109 ± 0.021 | −0.140 ± 0.033 | 0.54 | 0.44 |
 
-The NN=2 column reproduces the paper's commented-out N₂ numbers, so those came from a real two-flip
-implementation. The caption of the paper's Table 1 says N₂ "does not improve significantly over the simpler
+The NN=2 column agrees with the paper's commented-out N₂ numbers, which suggests, but does not establish,
+that those came from a working two-flip implementation. The caption of the paper's Table 1 says N₂ "does not improve significantly over the simpler
 N₁"; that holds in the two weakly coupled regimes and not in the two strongly coupled ones.
 
 ## 5. The DRH landscape refitted
@@ -306,24 +327,23 @@ All fits use the 455-row, 20-question data file of the paper (`validation/result
 | fit | log₁₀λ | coupling correlation with published | 15 strongest couplings shared | top 150 configurations shared | mass of top 150 | Spartans: ritual, no sacrifice | time |
 |---|---|---|---|---|---|---|---|
 | published parameter file | — | — | — | — | 0.422 | 69.7% | — |
-| `--legacy` (published procedure) | 0.207 | 1.0000 | 15 | 150 | 0.422 | 69.7% | 20 s |
-| marginal | 0.170 | 0.9990 | 15 | 143 | 0.427 | 72.0% | 26 s |
-| marginal, entry-wise CV | 0.195 | 0.9990 | 15 | 141 | 0.424 | 72.2% | 22 s |
-| **frozen, entry-wise CV, NN=1** | 0.129 | 0.9972 | 15 | 136 | 0.443 | 74.3% | 2 min |
-| **frozen, entry-wise CV, NN=2** | 0.216 | 0.9951 | 15 | 135 | 0.456 | 72.0% | 11 min |
-| **frozen, entry-wise CV, NN=3** | 0.214 | 0.9890 | 15 | 130 | 0.473 | 72.1% | 46 min |
-| `--legacy`, NN=2 | 0.258 | 0.9955 | 15 | 141 | 0.442 | 69.0% | 70 s |
+| `--legacy` (published procedure) | 0.207 | 1.0000 | 15 | 150 | 0.422 | 69.7% | 17 s |
+| marginal | 0.170 | 0.9990 | 15 | 143 | 0.427 | 72.0% | 19 s |
+| marginal, entry-wise CV | 0.195 | 0.9990 | 15 | 141 | 0.424 | 72.2% | 19 s |
+| **frozen, entry-wise CV, NN=1** | 0.128 | 0.9971 | 15 | 136 | 0.443 | 74.3% | 49 s |
+| **frozen, entry-wise CV, NN=2** | 0.216 | 0.9951 | 15 | 135 | 0.456 | 72.0% | 6 min |
+| **frozen, entry-wise CV, NN=3** | 0.214 | 0.9890 | 15 | 130 | 0.473 | 72.1% | 41 min |
+| `--legacy`, NN=2 | 0.258 | 0.9955 | 15 | 141 | 0.442 | 69.0% | 69 s |
 
-(Times on a shared 256-core machine with 40–100 threads; on an 18-core laptop the NN=1 fits take 45 s to
-3 minutes. No fit produced a convergence warning. The three frozen-weight fits were made before the final
-code review and repeated after it; the parameters are bit-identical.)
+(Times on a shared 256-core machine with 40 threads; on an 18-core laptop the NN=1 fits take 45 s to
+3 minutes. No fit produced a convergence warning. All seven fits are from the final program.)
 
 ### Frozen-weight fits at NN = 1, 2, 3 compared
 
 | | NN=1 vs NN=2 | NN=1 vs NN=3 | NN=2 vs NN=3 |
 |---|---|---|---|
 | correlation of couplings | 0.996 | 0.989 | 0.998 |
-| largest change in any parameter | 0.060 | 0.100 | 0.048 |
+| largest change in any parameter | 0.060 | 0.101 | 0.048 |
 | 15 strongest couplings shared | 15 | 15 | 15 |
 | top 150 configurations shared | 139 | 135 | 145 |
 | agreement of the three groups (adjusted Rand index) | 0.22 | 0.25 | 0.43 |
@@ -430,34 +450,35 @@ a positive bias remains after correction (mean log bias +0.14 ± 0.06 and +0.07 
 | dispersed | 0.274 ± 0.050 | 0.214 ± 0.037 | 0.213 ± 0.037 | 0.212 ± 0.037 | 0.289 ± 0.041 | 0.191 ± 0.033 |
 | ordered | 0.570 ± 0.019 | 0.394 ± 0.011 | 0.392 ± 0.010 | 0.391 ± 0.010 | 0.574 ± 0.022 | 0.341 ± 0.009 |
 | near-critical | 0.670 ± 0.047 | 0.460 ± 0.025 | 0.471 ± 0.026 | 0.477 ± 0.027 | 0.837 ± 0.074 | 0.426 ± 0.024 |
-| critical | 0.732 ± 0.133 | 0.461 ± 0.097 | 0.471 ± 0.084 | 0.515 ± 0.093 | 0.984 ± 0.191 | 0.491 ± 0.090 |
+| critical | 0.732 ± 0.133 | 0.461 ± 0.097 | 0.470 ± 0.083 | 0.498 ± 0.082 | 0.984 ± 0.191 | 0.491 ± 0.090 |
 
 Paired differences on the same landscapes:
 
 | | dispersed | ordered | near-critical | critical |
 |---|---|---|---|---|
-| marginal − published | −0.001 ± 0.001 | −0.001 ± 0.002 | +0.010 ± 0.004 | +0.011 ± 0.030 |
-| frozen − published | −0.001 ± 0.001 | −0.002 ± 0.002 | +0.017 ± 0.004 | +0.054 ± 0.018 |
+| marginal − published | −0.001 ± 0.001 | −0.001 ± 0.002 | +0.010 ± 0.004 | +0.009 ± 0.030 |
+| frozen − published | −0.001 ± 0.001 | −0.002 ± 0.002 | +0.017 ± 0.004 | +0.038 ± 0.030 |
 | published − 128 full | −0.060 ± 0.013 | −0.176 ± 0.013 | −0.210 ± 0.025 | −0.272 ± 0.073 |
 | published − 256 full | +0.023 ± 0.006 | +0.052 ± 0.007 | +0.035 ± 0.009 | −0.030 ± 0.043 |
 | naive − 128 full | +0.015 ± 0.011 | +0.004 ± 0.023 | +0.167 ± 0.050 | +0.252 ± 0.112 |
 
-(Three of the critical-regime frozen-weight searches took about seven hours each, against a median of 38
-minutes: on those landscapes almost every cross-validation fit at small λ fails to converge, and the
-frozen-weight loop then runs to its iteration limit in every fold.)
+(The marginal and frozen-weight columns use the cross-validation described in Section 10, N1. Two of the
+critical-regime frozen-weight searches took four and six and a half hours, against a median of about
+twenty minutes: on those landscapes almost every cross-validation fit at small λ fails to converge.)
 
 Partial data beat 128 complete rows in 60 of 64 landscapes with the published objective. Naive imputation
 is worse than Partial-MPF in 62 of 64 landscapes, and worse than not using the partial rows at all in the
 two strongest regimes. The three ways of treating the partial rows are indistinguishable in the two weakly
 coupled regimes; when couplings are strong the published objective is best and the frozen-weight iteration
-worst, by 0.01–0.05, as at oracle λ (Section 3). At least one cross-validation fold failed to converge at some λ tried in about
-a fifth of the searches in the dispersed regime, almost none in the ordered, two fifths in the near-critical and
-seven tenths in the critical regime; these are counted in the result files.
+worst: by 0.01–0.02 in the near-critical regime, and by amounts within the noise in the critical one. At least
+one cross-validation fold failed to converge at some λ tried in about a third of the searches (mostly in the
+two strongest regimes), but at the λ finally chosen every fold converged in all 64 marginal searches and in
+62 of the 64 frozen-weight ones; both counts are in the result files.
 
 The paper's Table 3 appears to combine two simulation runs: a commented-out row in the arXiv source,
 labelled "slightly updated methods gives slightly better results", has the published Partial-MPF and naive
 columns but different "full data" columns (256-full 0.42 and 0.44 in the two strongest regimes, where the
-table prints 0.40 and 0.38). The simulation logs in `MPF_CMU/NAN_TESTS` (519 trials) agree with the
+table prints 0.40 and 0.38). The simulation logs in `MPF_CMU/paper_runs/NAN_TESTS` (519 trials) agree with the
 commented-out row. This is an inference from the source and logs.
 
 **Speed** (DRH data; published code against the revised code, 18-core laptop):
@@ -490,7 +511,7 @@ These are single timings.
 | 10 | "In about 17% of religious groups ... we have inconsistent coding". In the curated file, 24 of 407 entries (5.9%) are expanded into more than one row. The 17% may refer to an earlier or larger subset | Unresolved | — |
 | 11 | Section 4 says data were simulated with "the Metropolis–Hastings algorithm"; the sampler is a heat-bath (Glauber) single-spin-flip sampler with annealing | Text only | — |
 | 12 | Cross-validation on the DRH data is leave-one-*row*-out, but 30 of the 201 complete rows are fractional-weight expansions of an inconsistently coded entry: their sibling rows stay in the training set, and each counts as a full observation | Small. With the marginal objective, weighted row-wise scoring selects log₁₀λ = 0.170 and holding out whole entries 0.195 | weighted scoring by default; `--groups` for entry-wise folds |
-| 13 | Every cross-validation fold with missing data started from the complete-rows fit, which had seen the held-out row. The problem is not convex, so the start can select the local solution | On the simulations this matters only in the critical regime; on the DRH, λ moves from 0.1702 to 0.1698 | each fold is now built from its own training rows; `--legacy` keeps the published behaviour |
+| 13 | Every cross-validation fold with missing data started from one fit to all the complete rows, which had seen the held-out row, made at a λ that had also been chosen with its help. The problem is not convex, so the start can select the local solution | Small. On the simulations it matters only in the critical regime; on the DRH the λ chosen moves in the fourth decimal | each fold now makes both stages of the fit from its own training rows, at the λ being scored; `--legacy` keeps the published behaviour |
 | 14 | Complete rows are not a representative sample of the DRH (Section 3), yet they are what cross-validation scores and what stage one of the fit uses | Not quantified. The frozen-weight fit is consistent whatever its starting point if it finds the right solution; the choice of λ is still scored on complete entries only | not fixed (Section 11) |
 
 ### 7b. Bugs that do not reach the paper
@@ -518,7 +539,7 @@ These are single timings.
 
 ## 8. What changed in the repository
 
-**C code (`MPF_CMU`)** — `mpf.h`, `mpf.c`, `mcmc.c`, `nlin.c`, `nsb.c`, `main.c`, `Makefile` rewritten. The
+**C code (`MPF_CMU/src`)** — `mpf.h`, `mpf.c`, `mcmc.c`, `nlin.c`, `nsb.c`, `main.c`, `Makefile` rewritten; `rng.c` new. The
 seven command-line modes, the file formats, and the output lines the helper scripts parse are unchanged.
 
 * Objective and gradient from local fields: all n neighbours of a state cost O(n²) rather than O(n³).
@@ -532,9 +553,15 @@ seven command-line modes, the file formats, and the output lines the helper scri
 * λ search: coarse grid on [−2, 4], extended downwards while the score improves, then golden section.
 * Exact sampling for n ≤ 24; `--seed`.
 * Input checking with exit status 0 / 2; limits explicit (62 questions, 20 blanks per row).
+* No external libraries. The GNU Scientific Library was used only for random numbers and for the NSB
+  entropy printed by `-o`; both are now done by code in `rng.c` and `nsb.c`. The random streams are
+  identical to GSL's, so `mpf -g --seed N` writes the same files as before, and fits are unchanged.
+  The Makefile uses OpenMP if the compiler has it and builds a single-threaded program otherwise.
 
-**New in `MPF_CMU`** — `tests/` (`make test`) and `validation/` (every experiment in this document, with
-outputs, source hashes and environment).
+**Layout of `MPF_CMU`** — `src/` is the program with its tests (`make test`), self-contained so that it can
+be copied and used elsewhere; `validation/` is new and holds every experiment in this document, with
+outputs, source hashes and environment; `paper_runs/` holds the scripts, logs and scratch files of the
+original work, which used to sit beside the C files.
 
 **Python** — `fun.py` (`p_dist`, `bin_states` vectorised: identical output, seconds instead of a minute and
 several GB); `prep_early.py`, `curation_functions.py` fixes; `expand_data.py` (Julia-free);
@@ -554,7 +581,7 @@ no script produces. All remain in the git history.
 
 ## 9. Testing
 
-* **Unit tests** (`MPF_CMU/tests/test_mpf.c`): 201,303 checks, of which 200,000 are range checks on
+* **Unit tests** (`MPF_CMU/src/tests/test_mpf.c`): 201,361 checks, of which 200,000 are range checks on
   individual draws of the exact sampler. Every numerical routine is compared with a slow implementation
   written from the definitions: the objective for all three treatments of missing data (n from 2 to 62,
   NN from 1 to 4, blanks, weights, duplicate rows); gradients by finite differences; extreme parameters;
@@ -562,25 +589,34 @@ no script produces. All remain in the git history.
   the minimiser and its status on overflowing starts; cross-validation against explicit refits (row-wise,
   weighted, grouped, masked, training-rows-only, independent of the starting vector, NN=2); the λ search;
   and the consistency results of Section 3 under MCAR and MAR at NN = 1, 2, 3 on exact population data.
-* **Command-line tests** (`tests/test_cli.sh`): 97 checks — exit codes, about twenty-five kinds of bad
+* **Command-line tests** (`MPF_CMU/src/tests/test_cli.sh`): 111 checks — exit codes, about thirty-five kinds of bad
   input, all seven modes, NN = 2 and 3, bit-identical results for 1 or many threads, a fit that runs out
   of iterations being reported as unconverged, more than 31 questions, reproduction of the published DRH
   parameters.
 * **Mutation testing** (`validation/mutation_test.py`): deliberate bugs are injected one at a time into a
-  copy of the sources, and `make test` must fail for each. 41 of 42 are caught. The survivor removes a
-  check for a non-finite gradient that is redundant in practice (the objective is non-finite in the same
-  cases, and that is checked too). An earlier survivor exposed a real gap — nothing tested that a fit
-  which fails to converge is reported as such — and a test was added for it.
+  copy of the sources, and `make test` must fail for each. 42 of 44 are caught. The two survivors remove
+  checks that are redundant in practice: one for a non-finite gradient (the objective is non-finite in the
+  same cases, and that is checked too), one for a non-finite number in the input (the fit or the
+  parameter check then fails anyway, with the same exit status). An earlier survivor exposed a real gap —
+  nothing tested that a fit which fails to converge is reported as such — and a test was added for it.
 * **Sanitizers**: an address + undefined-behaviour + leak sanitizer build of the final sources (gcc, with
   OpenMP, `-Wall -Wextra` clean) passes both suites and cross-validated DRH fits under all three options
-  at NN=1 and under the marginal and frozen-weight options at NN=2, with no reports and the same λ as the
-  optimised build.
+  at NN=1 and under the frozen-weight option at NN=2, with no reports and the same λ as the optimised
+  build.
 * **Two platforms**: macOS/clang and Linux/gcc give the same test results; DRH fits agree to 1e-11 and
-  simulation results to 2e-4 in KL. (The last round of changes was tested on Linux only.)
+  simulation results to 2e-4 in KL. The final sources pass both suites on Linux (gcc, with OpenMP) and on macOS
+  (Apple's compiler, without OpenMP or any external library).
+* **Removing GSL** (`validation/gsl_reference/check_against_gsl.c`): 8.4 million random draws (uniform,
+  integer, Gaussian; 8 seeds) are identical to GSL's; the digamma and trigamma functions agree with GSL's
+  to 1e-15; the NSB entropy agrees to 2e-12 bits on 400 random cases wherever both integrations succeed
+  (GSL's fails in 11 cases where the new one does not, never the reverse). At the level of the program, the
+  GSL-free binary writes byte-identical data and parameter files for `-g --seed` in 12 settings (exact and
+  Monte Carlo sampling, 5 to 62 nodes) and byte-identical parameter files for the DRH fits.
 * **Against the published code** (`validation/compare_with_published_code.py`): fixed-λ fits on 60 random
-  datasets agree to 8e-6 (3e-7 without missing data); cross-validated fits on 8 small problems to 0.0004
-  in log₁₀λ; NN = 1, 2, 3 against the published code with its multi-flip blocks re-enabled to 7e-7; the
-  published DRH parameters to 2e-6.
+  datasets, with and without missing data, agree to 2e-7; cross-validated fits on 8 small problems to
+  0.0004 in log₁₀λ; NN = 1, 2, 3 against the published code with its multi-flip blocks re-enabled to 2e-7;
+  the published DRH parameters to 2e-6. (The published code starts from a random point, so these figures
+  vary a little from run to run; an earlier run gave 8e-6 and 7e-7.)
 * **Pipeline**: in the pinned environment (Python 3.10, numpy 1.21.3, pandas 1.5.2, scikit-learn 1.2.0,
   scipy 1.10.1, matplotlib 3.6.2), `analysis/regenerate.py` on the published parameters reproduces the six
   committed tables byte for byte, the dendrogram clusters, annotations and group labels, on macOS and on
@@ -600,7 +636,9 @@ no script produces. All remain in the git history.
   fits already reported (cross-validation refits each fold's first-stage fit at every λ; the frozen-weight
   loop repeats one evaluation per pass and has no early exit when it stalls).
 
-## 10. The external review
+## 10. The external reviews
+
+### The first review
 
 [`CODEX_REVIEW_OF_CLAUDE.md`](CODEX_REVIEW_OF_CLAUDE.md) reviewed the first version of this work. Each of
 its findings was reproduced before being acted on. All ten were correct.
@@ -609,7 +647,7 @@ its findings was reproduced before being acted on. All ten were correct.
 |---|---|
 | R1. "Missing at random" was too weak a condition for the consistency claim | Correct: marginal MPF needs MCAR. The review's counterexample is a unit test. Working through why the frozen-weight variant passed it led to the MAR result of Section 3 |
 | R2. Finite inputs could give wrong objectives and NaN gradients, reported as convergence | Objective recomputed in the log domain; explicit fit status; numerical failure is an error. Both of the review's cases are tests |
-| R3. Cross-validation folds were initialised from a fit that included the held-out row | Each fold now repeats the staged fit on its training rows; `--legacy` retains the published behaviour. Multistart checks were not added |
+| R3. Cross-validation folds were initialised from a fit that included the held-out row | Each fold now repeats the staged fit on its training rows; `--legacy` retains the published behaviour. Multistart checks were not added. The second review found that this was incomplete (N1 below) |
 | R4. "EM" overclaimed | Renamed `--frozen`; described as a fixed-point iteration with no monotonicity guarantee; the claim that it reaches the same answers as marginal MPF withdrawn |
 | R5. Consistency of the objective is not consistency of the shipped estimator | Section 3 separates the two and lists what is not covered. The λ search no longer has a floor at 0.01 |
 | R6. The summary claimed more than the evidence supported | All three simulation tables re-run in full with the final code; result files carry source hashes, warnings and convergence status |
@@ -618,12 +656,51 @@ its findings was reproduced before being acted on. All ten were correct.
 | R9. The curation fix did not survive all-complete data | Fixed and tested against the old code |
 | R10. Reproducibility was narrower than stated | One command now regenerates the analysis; it reproduces the published tables in the pinned environment on two machines |
 
+### The second review
+
+[`CODEX_REVIEW_OF_CLAUDE_2026-11-16.md`](CODEX_REVIEW_OF_CLAUDE_2026-11-16.md) reviewed the work as it stood
+after the first response, the larger neighbourhoods, the regenerated analyses and the removal of GSL. Each
+finding was reproduced before being acted on. All were correct.
+
+| finding | what was done | test that now detects it | what was re-run |
+|---|---|---|---|
+| N1. Cross-validation with missing data still used held-out information: the first-stage λ was chosen once, from all the complete rows | The first stage of every fit is now the complete rows *at the λ being scored*: no separate λ is chosen for it, so nothing in a fold depends on the rows it holds out, and the final fit is made the same way. Choosing the first-stage λ separately inside every fold (the other remedy) was implemented and measured first: on 16 simulated data sets it gave the same answer as the leaky version in 15, and on the DRH it changed parameters by less than 1e-3, at 15–27 times the cost. `--legacy` keeps the published protocol | unit test comparing `cross()` with staged refits made by hand from each fold's training rows, on two data sets including the review's, at three values of λ; two mutations | every cross-validated fit with missing data: the DRH refits, the regenerated analyses, the marginal and frozen columns of Table 3, the `mpf` side of the bgms comparison |
+| N2. In the NN=3 analysis a configuration with no single-flip neighbour was dropped from the landscape, and the Wogeo entry appeared in neither Table A3 nor A4 | Isolated configurations are kept in the layout and in the figure | the pipeline now stops unless all 150 configurations survive and Tables A3 and A4 list every entry exactly once | all four regenerated analyses (the published one is unchanged, byte for byte) |
+| N3. A seed whose low 32 bits are zero (2^32, 2^33, ...) left the random number generator at zero and `mpf -g` never finished | Such a seed is treated as 1. GSL has the same flaw; this is the one case in which the generator now differs from GSL's | unit and command-line tests (the latter with a time limit); one mutation | — |
+| N4. The hidden-node check discarded the optimiser's status and called its end points minimisers | The script records status, end-point gradient and the objective along the path; the text now separates the gradient at the truth (the evidence of bias) from where an optimiser ends up (Section 3) | — | the check |
+| N5. The DRH bootstrap kept no record of convergence, and warnings during a λ search say nothing about the λ chosen | The bootstrap records how both stages of the chosen fit ended and how many candidate fits did not converge. `mpf -c` prints how many fold fits failed to converge at the λ it chose, and the trial scripts can read it | — | the bootstrap |
+| N6. Resuming a run overwrote its provenance file, and the experiment scripts were not fingerprinted | A manifest is named by its fingerprint and never overwritten; the fingerprint covers the C sources, the binary and the scripts, and is stored with every trial | — | applies to runs made from now on; earlier result files keep their old manifests |
+| N7. Integers in data and group files were not range-checked; `-z` and `-k` could write NaN for parameters too large to represent | Checked parsing for file integers; non-finite energies are an error | six command-line tests; one mutation | — |
+| N8. Some conclusions were stronger than the evidence: `--frozen` as "the appropriate method" for the DRH, a general large-sample ranking, the origin of the paper's N₂ numbers, "correct" and "consistent" in headings | Reworded throughout (Sections 1–4, the READMEs): what is shown is that the truth solves the population equation under the stated assumption; no experiment says which variant is closest to the truth for the DRH; marginal is sometimes ahead of frozen under MCAR | — | — |
+| Smaller points: `integrate()` accepted a workspace of no intervals; the penalty formula in the README was right only for NN=1 | Fixed | unit test; one mutation | — |
+
+A simplification pass followed, at the same time, with four reviewers reading the code for dead code,
+duplicated logic, wasted work, and fixes made at the wrong depth. The two-stage fit, which had been written
+out twice with slightly different conditions, is now one function used by the cross-validation folds and by
+the final fit. Numbers are parsed by one mechanism on the command line and in every file. Parameters too
+large to represent are rejected where they enter, in place of checks at four places where they were used.
+Shared pieces of the objective, the enumeration and the entropy code are factored out, and leftover
+parameters, fields and branches are gone. The experiment scripts take their simulated data from one place,
+are driven by one runner, and stamp their results in one way. The simplified program was compared with the
+one before it on 47 outputs (generated data, probability tables, fixed-λ and cross-validated fits under
+every option): all were byte-identical. Speed-ups that would have added complexity were left out.
+
+Two further changes were made while everything was being re-run. The frozen-weight iteration now gives
+up, and reports the fit as stalled, when its residual has not fallen by 1% in 300 passes; it used to run
+its full 5,000 passes, which is what made a few simulated data sets take seven hours. Fits that converge
+are unaffected (the DRH frozen fit is identical with and without the rule). And four of the DRH refits as
+first committed had been made with a binary older than its sources; all were redone, and the helpers now
+refuse to run in that state.
+
 ## 11. Limits
 
 * **Missingness in the DRH is assumed, not established, to depend only on observed answers.** If an answer
   being unknown depends on what it would have been, none of these methods is right.
 * **Model selection still uses only complete entries**, which are not a representative sample (#14).
   Scoring held-out partial rows by their marginal likelihood would use all entries; it is not implemented.
+* **A comparison with another package** (bgms, in R) was made afterwards and is in the README at the top of
+  the repository: neither method dominates, and on the real DRH data bgms predicts held-out entries
+  slightly better.
 * **No comparison with exact maximum likelihood.** At 20 questions the exact penalised likelihood — and
   with missing answers the exact marginal likelihood, which is consistent under MAR — is affordable, and is
   the natural benchmark for what MPF gives up. It was not run.
@@ -646,13 +723,15 @@ its findings was reproduced before being acted on. All ten were correct.
 
 | what | where |
 |---|---|
-| Program, options, data format | `MPF_CMU/README.md` |
-| Tests | `MPF_CMU/tests/` (`make test`) |
+| Program, options, data format | `MPF_CMU/src/` (README there) |
+| Tests | `MPF_CMU/src/tests/` (`make test`) |
 | Every experiment above, with scripts and outputs | `MPF_CMU/validation/` (index in its README) |
 | DRH refits: parameters, logs, recipe | `MPF_CMU/validation/results/drh_refits/` |
 | The analysis regenerated from each fit, and comparisons | `regenerated/` |
 | Pipeline regeneration and comparison scripts | `analysis/regenerate.py`, `analysis/compare_regenerated.py` |
+| Comparison with the R package bgms | `README.md` (summary); `MPF_CMU/validation/bgms/`, `MPF_CMU/validation/results/bgms/` |
 | The independent review of the first version | `CODEX_REVIEW_OF_CLAUDE.md` |
+| Scripts and logs of the original runs for the paper | `MPF_CMU/paper_runs/` |
 | The published code | git history, commit `23dce37` and earlier |
 
 Simulations were run on an 18-core Apple laptop and on a 256-core Linux server; each result file records

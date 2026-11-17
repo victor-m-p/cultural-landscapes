@@ -7,13 +7,13 @@ Group 1 &    Red &                       Grave goods &   27.36 &   69.08 & -41.7
 Group 1 &    Red &      Small-scale rituals required &   85.61 &   59.65 &  25.96 \\
 Group 1 &    Red &      Co-sacrifices in tomb/burial &    0.49 &   25.39 & -24.90 \\
 Group 1 &    Red &      Large-scale rituals required &   96.33 &   77.17 &  19.16 \\
-Group 2 &   Blue &                       Grave goods &   95.13 &   22.76 &  72.38 \\
+Group 2 &   Blue &                       Grave goods &   95.14 &   22.76 &  72.38 \\
 Group 2 &   Blue &                        Scriptures &   43.56 &   91.95 & -48.39 \\
 Group 2 &   Blue &      Co-sacrifices in tomb/burial &   35.70 &    0.39 &  35.32 \\
-Group 2 &   Blue &     Special treatment for corpses &  100.00 &   68.20 &  31.80 \\
+Group 2 &   Blue &     Special treatment for corpses &  100.00 &   68.19 &  31.81 \\
 Group 2 &   Blue &       Reincarnation in this world &   40.55 &   17.73 &  22.82 \\
 Group 3 & Yellow &      Small-scale rituals required &    3.08 &   84.45 & -81.37 \\
-Group 3 & Yellow &      Large-scale rituals required &   32.24 &   95.98 & -63.74 \\
+Group 3 & Yellow &      Large-scale rituals required &   32.23 &   95.98 & -63.75 \\
 Group 3 & Yellow &                       Grave goods &    4.91 &   53.67 & -48.75 \\
 Group 3 & Yellow & Monumental religious architecture &   23.58 &   69.83 & -46.25 \\
 Group 3 & Yellow &        Official political support &   29.77 &   72.84 & -43.07 \\

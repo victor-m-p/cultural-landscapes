@@ -1,0 +1,9 @@
+The GSL-free program (MPF_CMU/src) against the last GSL-linked build (commit 0b58f92), Linux/gcc.
+mpf -g [n_nodes n_obs beta] --seed N [--mcmc], 12 settings from 5 to 62 nodes, exact and Monte Carlo sampling: 12 of 12 give byte-identical _data.dat, _params.dat and stderr
+-o on simulated data (20 128 0.15 21): output identical apart from the NSB entropy: True; warnings identical: True; NSB entropy old -1.0 new 6.988962
+-o on simulated data (20 128 0.35 22): output identical apart from the NSB entropy: True; warnings identical: True; NSB entropy old 5.494185 new 5.494185
+-o on simulated data (16 200 0.6 23): output identical apart from the NSB entropy: True; warnings identical: True; NSB entropy old 2.619652 new 2.619652
+DRH -c 1 --legacy: parameter files identical: yes; Best log_sparsity: 0.207018
+DRH -c 1 --marginal: parameter files identical: yes; Best log_sparsity: 0.169750
+DRH -c 1 --frozen -: parameter files identical: yes; Best log_sparsity: 0.128537
+DRH -c 2 --legacy: parameter files identical: yes; Best log_sparsity: 0.257894

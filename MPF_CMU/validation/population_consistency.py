@@ -5,7 +5,7 @@ Convention as in the paper: p(s) ~ exp(H(s)), H = sum_{a<b} J_ab s_a s_b + sum_a
 For an observation o with missing part c:
 
   legacy   : K = sum_o p*(o) sum_c p_theta(c|o) sum_{k observed} exp((H(o^k,c) - H(o,c))/2)   weights differentiated through
-  EM       : same expression, weights p_theta(c|o) frozen at the previous theta, iterated to a fixed point
+  frozen   : same expression, weights p_theta(c|o) frozen at the previous theta, iterated to a fixed point
   marginal : K = sum_o p*(o) sum_{k observed} sqrt( p_theta(o^k) / p_theta(o) )               MPF on the marginal
 
 Usage: python3 population_consistency.py [n] [n_blank]      (defaults 6 2; n=8 takes a few minutes)
@@ -70,7 +70,7 @@ def numgrad(f, x, eps=1e-6):
         g[i] = (f(x + e) - f(x - e)) / (2 * eps)
     return g
 
-def run(n, beta, nblank, frac_complete, seed, do_em=True):
+def run(n, beta, nblank, frac_complete, seed, do_frozen=True):
     rng = np.random.default_rng(seed)
     npar = n * (n + 1) // 2; nJ = n * (n - 1) // 2
     theta = rng.normal(0, beta, npar)
@@ -81,14 +81,14 @@ def run(n, beta, nblank, frac_complete, seed, do_em=True):
     out = []
     fit = minimize(K_legacy, theta, jac=lambda t: numgrad(K_legacy, t), **opt).x
     out.append(("legacy", np.linalg.norm(numgrad(K_legacy, theta)), fit))
-    if do_em:
+    if do_frozen:
         t = theta + rng.normal(0, 0.05, npar)                        # start away from the truth
         for _ in range(200):
             f = lambda x, w=t.copy(): K_legacy(x, wtheta=w)
             new = minimize(f, t, jac=lambda x: numgrad(f, x), **opt).x
             d = np.max(np.abs(new - t)); t = new
             if d < 1e-9: break
-        out.append(("EM", np.linalg.norm(numgrad(lambda x: K_legacy(x, wtheta=theta), theta)), t))
+        out.append(("frozen", np.linalg.norm(numgrad(lambda x: K_legacy(x, wtheta=theta), theta)), t))
     fit = minimize(K_marginal, theta, jac=lambda t: numgrad(K_marginal, t), **opt).x
     out.append(("marginal", np.linalg.norm(numgrad(K_marginal, theta)), fit))
     return [(name, g, np.sqrt(np.mean((th - theta) ** 2)), np.mean(np.abs(th[:nJ])) / np.mean(np.abs(theta[:nJ])), kl(th)) for name, g, th in out]
@@ -100,6 +100,6 @@ if __name__ == "__main__":
     print(f"{'beta':>5} {'objective':<9} {'|grad K| at truth':>18} {'RMS param err':>14} {'mean|J_fit|/mean|J|':>20} {'KL(true||fit)':>14}")
     for beta in (0.1, 0.25, 0.5, 1.0):
         for seed in ((1, 2) if n <= 6 else (11,)):
-            for name, g, rms, ratio, k in run(n, beta, nblank, 0.5, seed, do_em=(n <= 6)):
+            for name, g, rms, ratio, k in run(n, beta, nblank, 0.5, seed, do_frozen=(n <= 6)):
                 print(f"{beta:5.2f} {name:<9} {g:18.2e} {rms:14.2e} {ratio:20.4f} {k:14.2e}", flush=True)
             print()

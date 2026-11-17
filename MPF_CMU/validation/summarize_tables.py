@@ -1,13 +1,11 @@
 """Summarise the Table 1 and Table 2 re-runs.   Usage: python3 summarize_tables.py"""
-import json, os
-from common import load_trials
+import os
+from common import load_trials, REGIME_NAMES as names, se
 import numpy as np
 here = os.path.dirname(os.path.abspath(__file__))
-names = ['dispersed', 'ordered', 'near-critical', 'critical']
 def load(f):
     p = os.path.join(here, 'results', f)
     return load_trials(p) if os.path.exists(p) else []
-se = lambda a: a.std(ddof=1) / np.sqrt(len(a)) if len(a) > 1 else float('nan')
 print("Table 1 (n=20, 128 observations): mean KL from truth ± standard error; paper: optimal / CV / standard MPF = 0.22/0.23/1.2, 0.55/0.56/2.3, 0.62/0.63/19.4, 0.50/0.54/9.5")
 for f, label in (('table1_mcmc.jsonl', 'published Monte Carlo sampler'), ('table1_exact.jsonl', 'exact sampling')):
     R = load(f)

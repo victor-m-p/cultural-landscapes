@@ -6,7 +6,7 @@ B = frozen_nn3_entrycv
    the 15 strongest couplings (Figure 3): 15 shared
 
 2. MOST PROBABLE CONFIGURATIONS (Figure 4A)
-   top 150: 145 shared; probability mass A 0.456, B 0.472
+   top 150: 145 shared; probability mass A 0.456, B 0.473
    the 20 most probable in A have ranks in B: [1, 2, 3, 5, 4, 7, 6, 9, 8, 10, 11, 13, 14, 15, 17, 12, 23, 18, 21, 26]
 
 3. GROUPS (dendrogram of the top 150; Figure A1, Tables 5, A2-A4)
@@ -19,7 +19,7 @@ B = frozen_nn3_entrycv
    frozen_nn3_entrycv: 5 clusters at the paper's cut height; three top-level groups:
                    configurations   mass  clusters
       recode_comm                                 
-      Group 1                  94  0.351         3
+      Group 1                  95  0.352         3
       Group 2                  31  0.080         1
       Group 3                  24  0.041         1
    agreement of the three groups on the 145 shared configurations: adjusted Rand index 0.429
@@ -69,13 +69,13 @@ B = frozen_nn3_entrycv
       Group 1 &    Red &      Small-scale rituals required &   85.61 &   59.65 &  25.96 \\
       Group 1 &    Red &      Co-sacrifices in tomb/burial &    0.49 &   25.39 & -24.90 \\
       Group 1 &    Red &      Large-scale rituals required &   96.33 &   77.17 &  19.16 \\
-      Group 2 &   Blue &                       Grave goods &   95.13 &   22.76 &  72.38 \\
+      Group 2 &   Blue &                       Grave goods &   95.14 &   22.76 &  72.38 \\
       Group 2 &   Blue &                        Scriptures &   43.56 &   91.95 & -48.39 \\
       Group 2 &   Blue &      Co-sacrifices in tomb/burial &   35.70 &    0.39 &  35.32 \\
-      Group 2 &   Blue &     Special treatment for corpses &  100.00 &   68.20 &  31.80 \\
+      Group 2 &   Blue &     Special treatment for corpses &  100.00 &   68.19 &  31.81 \\
       Group 2 &   Blue &       Reincarnation in this world &   40.55 &   17.73 &  22.82 \\
       Group 3 & Yellow &      Small-scale rituals required &    3.08 &   84.45 & -81.37 \\
-      Group 3 & Yellow &      Large-scale rituals required &   32.24 &   95.98 & -63.74 \\
+      Group 3 & Yellow &      Large-scale rituals required &   32.23 &   95.98 & -63.75 \\
       Group 3 & Yellow &                       Grave goods &    4.91 &   53.67 & -48.75 \\
       Group 3 & Yellow & Monumental religious architecture &   23.58 &   69.83 & -46.25 \\
       Group 3 & Yellow &        Official political support &   29.77 &   72.84 & -43.07 \\
@@ -87,21 +87,21 @@ B = frozen_nn3_entrycv
       \toprule
         Group &  Color &                          Question &  Avg. S &  Avg. O &   Diff \\
       \midrule
-      Group 1 &    Red & Monumental religious architecture &   80.85 &   19.77 &  61.08 \\
-      Group 1 &    Red &                        Scriptures &   91.68 &   31.80 &  59.88 \\
-      Group 1 &    Red &      Small-scale rituals required &   85.97 &   44.11 &  41.86 \\
-      Group 1 &    Red &      Large-scale rituals required &   95.66 &   68.30 &  27.36 \\
-      Group 1 &    Red &                       Grave goods &   43.65 &   64.85 & -21.19 \\
-      Group 2 &   Blue &                        Scriptures &   10.70 &   89.65 & -78.95 \\
-      Group 2 &   Blue &                       Grave goods &   98.55 &   39.06 &  59.49 \\
-      Group 2 &   Blue & Monumental religious architecture &   28.42 &   72.67 & -44.25 \\
-      Group 2 &   Blue &     Special treatment for corpses &  100.00 &   76.25 &  23.75 \\
-      Group 2 &   Blue &         Distinct written language &    9.41 &   23.94 & -14.53 \\
-      Group 3 & Yellow &      Small-scale rituals required &    4.37 &   82.06 & -77.69 \\
-      Group 3 & Yellow & Monumental religious architecture &    3.14 &   71.17 & -68.02 \\
-      Group 3 & Yellow &      Large-scale rituals required &   27.90 &   94.49 & -66.59 \\
-      Group 3 & Yellow &                       Grave goods &    0.00 &   53.79 & -53.79 \\
-      Group 3 & Yellow &        Official political support &   33.21 &   71.95 & -38.73 \\
+      Group 1 &    Red & Monumental religious architecture &   80.91 &   19.77 &  61.13 \\
+      Group 1 &    Red &                        Scriptures &   91.71 &   31.80 &  59.91 \\
+      Group 1 &    Red &      Small-scale rituals required &   86.02 &   44.12 &  41.90 \\
+      Group 1 &    Red &      Large-scale rituals required &   95.67 &   68.30 &  27.37 \\
+      Group 1 &    Red &                       Grave goods &   43.83 &   64.85 & -21.02 \\
+      Group 2 &   Blue &                        Scriptures &   10.70 &   89.68 & -78.98 \\
+      Group 2 &   Blue &                       Grave goods &   98.55 &   39.22 &  59.32 \\
+      Group 2 &   Blue & Monumental religious architecture &   28.42 &   72.74 & -44.33 \\
+      Group 2 &   Blue &     Special treatment for corpses &  100.00 &   76.31 &  23.69 \\
+      Group 2 &   Blue &         Distinct written language &    9.41 &   23.88 & -14.47 \\
+      Group 3 & Yellow &      Small-scale rituals required &    4.37 &   82.10 & -77.74 \\
+      Group 3 & Yellow & Monumental religious architecture &    3.14 &   71.24 & -68.10 \\
+      Group 3 & Yellow &      Large-scale rituals required &   27.90 &   94.50 & -66.61 \\
+      Group 3 & Yellow &                       Grave goods &    0.00 &   53.91 & -53.91 \\
+      Group 3 & Yellow &        Official political support &   33.21 &   72.02 & -38.80 \\
       \bottomrule
       \end{tabular}
 
@@ -121,7 +121,7 @@ B = frozen_nn3_entrycv
       \toprule
         Group &  Weight \\
       \midrule
-      Group 1 &   35.14 \\
+      Group 1 &   35.24 \\
       Group 2 &    7.96 \\
       Group 3 &    4.14 \\
       \bottomrule

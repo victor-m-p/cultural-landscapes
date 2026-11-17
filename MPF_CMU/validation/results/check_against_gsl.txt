@@ -1,0 +1,10 @@
+random numbers: 8400000 draws compared with GSL (8 seeds; uniform, uniform integer, Gaussian, interleaved): 0 differ
+known answers for the unit test (from GSL), seed 20230131: uniform_int(1000000) = 62917 848763 486825 537357; then uniform = 0.61667281831614673; then gaussian(1) = 0.083662098571901225 0.24483154424005346
+digamma: largest difference from GSL for x in [1e-3, 1e8], relative to max(1, |digamma|): 1.11e-15
+trigamma: largest relative difference from GSL for x in [1e-3, 1e8]: 8.73e-16
+known answer for the unit test: counts {5,3,2,1,1,1,4,2}: GSL-based 2.849845240970, self-contained 2.849845240970
+  example 0: 2 states, GSL-based 0.784499057832, self-contained 0.784499057832
+  example 1: 26 states, GSL-based 4.549879474028, self-contained 4.549879474028
+  example 2: 20 states, GSL-based 4.154409760891, self-contained 4.154409760891
+  example 3: 21 states, GSL-based 4.332052848572, self-contained 4.332052848572
+NSB entropy on 400 random count vectors: integration failed (returns -1) in 123 with the GSL-based code and 112 with the self-contained code (11 cases where only one failed); largest absolute difference where both succeed: 2.11e-12 bits

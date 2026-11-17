@@ -72,6 +72,9 @@ G = nx.from_pandas_edgelist(only_one_diff,
                             source='node_x',
                             target='node_y',
                             edge_attr='hamming')
+# a configuration with no single-flip neighbour among the top states has no edge, but it is still part of
+# the landscape: without this line it would be missing from the layout and silently dropped below
+G.add_nodes_from(network_information['node_id'])
 
 pos = nx.nx_agraph.graphviz_layout(G, prog='fdp')
 pos_df = pd.DataFrame.from_dict(pos, 
@@ -98,6 +101,10 @@ louvain_communities_df['node_id'] = louvain_communities_df.index
 network_information = network_information.merge(louvain_communities_df, 
                                                 on='node_id',
                                                 how='inner')
+
+# every one of the top configurations must still be there
+assert len(network_information) == n_top_states and network_information['config_id'].nunique() == n_top_states, \
+    f'{len(network_information)} of the {n_top_states} top configurations survived the layout and community steps'
 
 # save 
 network_information.to_csv('../data/analysis/top_configurations_network.csv', index = False)

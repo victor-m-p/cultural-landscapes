@@ -37,6 +37,7 @@ for k in sorted(ta ^ tb): print(f"      only in {'A' if k in ta else 'B'}: {q[pa
 
 print('\n2. MOST PROBABLE CONFIGURATIONS (Figure 4A)')
 na, nb = a['net'].set_index('config_id'), b['net'].set_index('config_id')
+assert len(na) == 150 and len(nb) == 150, f'the landscapes hold {len(na)} and {len(nb)} configurations, not the top 150'
 shared = [c for c in na.index if c in nb.index]
 print(f"   top 150: {len(shared)} shared; probability mass A {na.config_prob.sum():.3f}, B {nb.config_prob.sum():.3f}")
 print(f"   the 20 most probable in A have ranks in B: {[int(nb.node_id[c]) + 1 if c in nb.index else None for c in na.sort_values('node_id').index[:20]]}")

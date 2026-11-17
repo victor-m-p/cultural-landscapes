@@ -4,7 +4,7 @@ sources and confirm that `make test` fails. A mutation that survives marks a gap
 Usage: CC=/path/to/compiler [OMP_NUM_THREADS=8] python3 mutation_test.py        (output: results/mutation_test.txt)
 """
 import os, shutil, subprocess, sys, tempfile
-HERE = os.path.dirname(os.path.abspath(__file__)); SRC = os.path.join(HERE, '..'); REPO = os.path.join(SRC, '..')
+HERE = os.path.dirname(os.path.abspath(__file__)); SRC = os.path.join(HERE, '..', 'src')     # the program and its tests
 CC = os.environ.get('CC', 'gcc')
 THREADS = os.environ.get('OMP_NUM_THREADS', '8')     # a mutant can make a fit run for a long time: cap what it can use
 
@@ -20,7 +20,6 @@ def run_limited(cmd, cwd, timeout=900):
         os.killpg(p.pid, signal.SIGKILL)
         p.wait()
         return 'timeout'
-DRH = 'data/mdl_experiments/matrix_questions_20_maxna_5_nrows_455_entries_407.txt.mpf'
 M = [
  ('mpf.c', 'Hc += 0.5*(x+s[k]*h[k]);', 'Hc += 0.5*x;', 'field term dropped from H (NN>1 routine)', 0),
  ('mpf.c', 'Hc += 0.5*(x+s[k]*h[k]);', 'Hc += 0.5*x;', 'field term dropped from H (NN=1 routine)', 1),
@@ -41,7 +40,7 @@ M = [
  ('mpf.c', 'if (!isfinite(g[i])) return INFINITY;', 'if (0) return INFINITY;', 'non-finite gradient not detected'),
  ('mpf.c', 'if (!isfinite(f) || !isfinite(gmax)) { info.status=FIT_NUMERICAL; ended=1; }', 'if (0) { info.status=FIT_NUMERICAL; ended=1; }', 'non-finite start not reported'),
  ('mpf.c', 'if (gmax < GTOL_ACCEPT*scale) info.status=FIT_CONVERGED;', 'if (1) info.status=FIT_CONVERGED;', 'every fit reported as converged'),
- ('mpf.c', "if (!isfinite(x[j])) die(\"'%s': parameter %d is not a finite number\", filename, j+1);", '', 'non-finite parameters accepted'),
+ ('mpf.c', "if (end == text || *end != '\\0' || !isfinite(v)) die(", "if (end == text || *end != '\\0') die(", 'non-finite numbers accepted'),
  ('mpf.c', 'for(j=i+1;j<sz;j++) e += 2*m->J[(size_t)mem[i]*n+mem[j]]*s[mem[i]]*s[mem[j]];', 'for(j=i+1;j<sz;j++) e += m->J[(size_t)mem[i]*n+mem[j]]*s[mem[i]]*s[mem[j]];', 'multi-flip: pair correction to the flow'),
  ('mpf.c', 'for(l=k+1;l<n;l++) gJk[l] += sk*s[l]*(a-m->Ru[k]-m->Ru[l]+2*Pk[l]);', 'for(l=k+1;l<n;l++) gJk[l] += sk*s[l]*(a-m->Ru[k]-m->Ru[l]);', 'multi-flip: coupling gradient ignores sets containing both ends'),
  ('mpf.c', 'for(l=k+1;l<n;l++) gJk[l] += sk*s[l]*(coef-2*m->Ru[k]-2*m->Ru[l]+4*Pk[l]);', 'for(l=k+1;l<n;l++) gJk[l] += sk*s[l]*(coef-2*m->Ru[k]-2*m->Ru[l]);', 'multi-flip: marginal coupling gradient'),
@@ -56,16 +55,18 @@ M = [
  ('mcmc.c', 'running *= -2*sp*scale;', 'running *= 2*sp*scale;', 'Monte Carlo acceptance sign'),
  ('nlin.c', 'wt=opt->legacy_cv ? 1.0 : d->w[a];', 'wt=1.0;', 'CV ignores weights'),
  ('nlin.c', 'mask[a]=(include == NULL || include[a]) && (fold_of[a] != in);', 'mask[a]=(include == NULL || include[a]);', 'held-out row left in the training set'),
- ('nlin.c', 'train_only=(!opt->legacy_cv && has_partial);', 'train_only=0;', 'folds with missing data start from the full-data fit'),
- ('nlin.c', 'cmask[a]=mask[a] && (d->n_blanks[a] == 0);', 'cmask[a]=(include == NULL || include[a]) && (d->n_blanks[a] == 0);', 'stage-1 fold fit includes the held-out row'),
+ ('nlin.c', 'else fi=fit_staged(d, mask, log_sparsity, x, opt->objective, &first_stage);', 'else fi=fit_rows(d, mask, log_sparsity, x, opt->objective);', 'folds skip their first stage'),
+ ('nlin.c', 'for(i=0;i<m;i++) complete[i]=(rows == NULL || rows[i]) && d->n_blanks[i] == 0;', 'for(i=0;i<m;i++) complete[i]=(d->n_blanks[i] == 0);', 'the first stage of a fold includes the row it holds out'),
+ ('rng.c', 'if (s == 0) s=1;', '', 'a seed whose low 32 bits are zero leaves the generator at zero'),
+ ('mpf.c', 'errno != 0 || v < lo || v > hi) die(', 'errno != 0) die(', 'integers (on the command line and in files) not range-checked'),
+ ('nsb.c', 'if (max_intervals < 1) { *result=0; return 3; }', '', 'integration with no intervals allowed'),
  ('nlin.c', 'if (val[i] < val[best]) best=i;', 'if (val[i] > val[best]) best=i;', 'search picks the worst grid point'),
  ('nlin.c', 'if (!isfinite(fbest)) {\n\t\tif (at_boundary != NULL) *at_boundary=1;\n\t\treturn NAN;\n\t}', '', 'search returns a value when every candidate is invalid'),
  ('nlin.c', 'if (extend_low && best == 0) {', 'if (0) {', 'search never extends below -2'),
  ('nlin.c', 'if (d->n_blanks[j] > 0) ok=0;       // only fully-observed groups are held out', '', 'groups with partial rows held out'),
  ('main.c', 'opt.objective=OBJ_LEGACY; opt.legacy_cv=1;', 'opt.objective=OBJ_MARGINAL; opt.legacy_cv=1;', '--legacy does not select the legacy objective'),
- ('main.c', "errno != 0 || v < -1000000000L || v > 1000000000L", "errno != 0", 'integer arguments not range-checked'),
 ]
-ignore = shutil.ignore_patterns('DATA', '*.o', 'mpf', 'BIAS_TESTS', 'NAN_TESTS', 'PLOTS', '*.pdf', 'mpf.dSYM', 'test_mpf', 'validation')
+ignore = shutil.ignore_patterns('*.o', 'mpf', 'mpf.dSYM', 'test_mpf')
 # every mutation must apply to the current sources: stop at once if the list has gone stale
 stale = [t[3] for t in M if (len(t) == 4 and open(os.path.join(SRC, t[0])).read().count(t[1]) != 1)
          or (len(t) == 5 and open(os.path.join(SRC, t[0])).read().count(t[1]) < t[4] + 1)]
@@ -73,16 +74,12 @@ if stale:
     sys.exit('mutation_test.py is out of date with the sources; these mutations do not apply: ' + '; '.join(stale))
 killed = 0; lines = []
 with tempfile.TemporaryDirectory() as td:
-    os.makedirs(os.path.join(td, 'data', 'mdl_experiments'))
-    for f in (DRH, DRH + '_params.dat'): shutil.copy(os.path.join(REPO, f), os.path.join(td, f))
-    W = os.path.join(td, 'MPF_CMU')
+    W = os.path.join(td, 'src')
     for fn, old, new, desc, *which in M:
         # a mutation is (file, old, new, description[, k]); with k it changes the k-th of several identical lines
         shutil.rmtree(W, ignore_errors=True); shutil.copytree(SRC, W, ignore=ignore)
         s = open(f'{W}/{fn}').read()
         parts = s.split(old)
-        if (not which and len(parts) != 2) or (which and len(parts) < which[0] + 2):
-            lines.append(f"{'NOT APPLIED':24s} {desc} ({len(parts) - 1} matches)"); print(lines[-1], flush=True); continue
         k = which[0] if which else 0
         open(f'{W}/{fn}', 'w').write(old.join(parts[:k + 1]) + new + old.join(parts[k + 1:]))
         b = subprocess.run(['make', '-s', f'CC={CC}', 'mpf', 'tests/test_mpf'], cwd=W, capture_output=True, text=True)
@@ -93,7 +90,7 @@ with tempfile.TemporaryDirectory() as td:
         caught = [x for x, r in (('unit', u), ('cli', c)) if r != 0]
         killed += bool(caught)
         lines.append(f"{'caught by ' + '+'.join(caught) if caught else 'SURVIVED':24s} {desc}"); print(lines[-1], flush=True)
-not_applied = sum(l.startswith(('NOT APPLIED', 'DID NOT COMPILE')) for l in lines)
-lines.append(f'{killed} of {len(M) - not_applied} injected bugs caught' + (f' ({not_applied} mutations could not be applied: the script is out of date with the sources)' if not_applied else '')); print(lines[-1])
+not_compiled = sum(l.startswith('DID NOT COMPILE') for l in lines)
+lines.append(f'{killed} of {len(M) - not_compiled} injected bugs caught' + (f' ({not_compiled} mutations did not compile)' if not_compiled else '')); print(lines[-1])
 os.makedirs(os.path.join(HERE, 'results'), exist_ok=True)
 open(os.path.join(HERE, 'results', 'mutation_test.txt'), 'w').write("\n".join(lines) + "\n")

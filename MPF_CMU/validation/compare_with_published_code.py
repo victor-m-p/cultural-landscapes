@@ -7,10 +7,10 @@ in a temporary directory.
 Usage: CC=/path/to/compiler-with-openmp python3 compare_with_published_code.py     (output: results/compare_with_published_code.txt)
 (set MPF_PUBLISHED_SRC to a directory containing the published sources if the git history is not available)
 """
-import os, random, re, shutil, subprocess, sys, tempfile
+import os, random, re, shutil, subprocess, tempfile
 import numpy as np
 HERE = os.path.dirname(os.path.abspath(__file__)); REPO = os.path.join(HERE, '..', '..')
-NEW = os.environ.get('MPF_BIN', os.path.join(HERE, '..', 'mpf')); CC = os.environ.get('CC', 'gcc'); COMMIT = '23dce37'
+NEW = os.environ.get('MPF_BIN', os.path.join(HERE, '..', 'src', 'mpf')); CC = os.environ.get('CC', 'gcc'); COMMIT = '23dce37'
 out_lines = []
 def say(s):
     print(s, flush=True); out_lines.append(s)
@@ -20,6 +20,7 @@ with tempfile.TemporaryDirectory() as td:
             shutil.copy(os.path.join(os.environ['MPF_PUBLISHED_SRC'], f), os.path.join(td, f))
         else:
             open(os.path.join(td, f), 'w').write(subprocess.run(['git', '-C', REPO, 'show', f'{COMMIT}:MPF_CMU/{f}'], capture_output=True, text=True, check=True).stdout)
+    # the published code needs the GNU Scientific Library (the current program does not)
     gsl_c = subprocess.run(['gsl-config', '--cflags'], capture_output=True, text=True).stdout.split()
     gsl_l = subprocess.run(['gsl-config', '--libs'], capture_output=True, text=True).stdout.split()
     subprocess.run([CC, '-O3', '-fopenmp', *gsl_c, 'main.c', 'mpf.c', 'mcmc.c', 'nlin.c', 'nsb.c', '-o', 'mpf_published', '-lm', *gsl_l], cwd=td, check=True, capture_output=True)

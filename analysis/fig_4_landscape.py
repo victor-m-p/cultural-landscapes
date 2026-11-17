@@ -142,6 +142,7 @@ G = nx.from_pandas_edgelist(hamming_information,
                             'node_x',
                             'node_y',
                             'hamming')
+G.add_nodes_from(network_information['node_id']) # a configuration with no single-flip neighbour has no edge
 
 ## extract position
 pos = {}
@@ -223,6 +224,7 @@ clade_weight = network_information.groupby('node_clade')['config_prob'].sum().so
 recode_comm = {clade: f'Group {i+1}' for i, clade in enumerate(clade_weight.index)}
 network_information['recode_comm'] = [recode_comm.get(x) for x in network_information['node_clade']]
 network_information = network_information.drop(columns = 'node_clade')
+assert len(network_information) == 150, f'{len(network_information)} of the 150 top configurations reached network_information.csv'
 network_information.to_csv('../data/analysis/network_information.csv', index = False)
 
 # save annotation information

@@ -19,16 +19,13 @@ from scipy.cluster.hierarchy import fcluster
 warnings.filterwarnings('ignore')
 here = os.path.dirname(os.path.abspath(__file__)); repo = os.path.join(here, '..', '..')
 sys.path.insert(0, os.path.join(repo, 'analysis'))
-from fun import top_n_idx, bin_states, p_dist
+from fun import top_n_idx, bin_states, p_dist, linkage_matrix
 conf = bin_states(20)
 def clades(params, n_top, k=3):
     par = np.loadtxt(params); p = p_dist(par[190:], par[:190])
     top = top_n_idx(n_top, p, 'config_id', 'config_prob'); ids = top['config_id'].tolist()[:n_top]
     model = AgglomerativeClustering(distance_threshold=0, n_clusters=None).fit(conf[ids])
-    counts = np.zeros(model.children_.shape[0]); n = len(model.labels_)
-    for i, merge in enumerate(model.children_):
-        counts[i] = sum(1 if c < n else counts[c - n] for c in merge)
-    Z = np.column_stack([model.children_, model.distances_, counts]).astype(float)
+    Z = linkage_matrix(model)
     lab = fcluster(Z, k, 'maxclust')
     return dict(zip(ids, lab)), len(set(fcluster(Z, 0.6 * Z[-1, 2], 'distance'))), sorted(np.round([p[[i for i in ids if dict(zip(ids, lab))[i] == j]].sum() for j in set(lab)], 3), reverse=True)
 pub_file = os.path.join(repo, 'data', 'mdl_experiments', 'matrix_questions_20_maxna_5_nrows_455_entries_407.txt.mpf_params.dat')

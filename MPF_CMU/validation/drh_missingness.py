@@ -7,7 +7,7 @@ If not (missing completely at random), the pattern of blanks should be independe
 Needs pandas and scipy.   Usage: python3 drh_missingness.py     (output: results/drh_missingness.txt)
 """
 import os
-import numpy as np, pandas as pd
+import pandas as pd
 from scipy.stats import fisher_exact
 here = os.path.dirname(os.path.abspath(__file__)); repo = os.path.join(here, '..', '..')
 ref = pd.read_csv(os.path.join(repo, 'data', 'reference', 'direct_reference_questions_20_maxna_5_nrows_455_entries_407.csv'))
@@ -23,7 +23,7 @@ def say(s=''):
     print(s); out.append(s)
 n = len(value); has_blank = missing.any(axis=1)
 say(f"{n} entries; {int(has_blank.sum())} have at least one missing answer; {int(missing.values.sum())} missing answers in all")
-say(f"missing answers per question: " + ", ".join(f"{names[c][:18]}={int(missing[c].sum())}" for c in q))
+say("missing answers per question: " + ", ".join(f"{names[c][:18]}={int(missing[c].sum())}" for c in q))
 say()
 say("1. 'yes' rate of each question: complete entries vs entries with a blank in some OTHER question")
 tests = []

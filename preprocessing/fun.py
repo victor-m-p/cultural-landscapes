@@ -4,7 +4,6 @@ VMP 2022-02-06: refactored with chatGPT and docstrings.
 '''
 
 import numpy as np
-import itertools 
 import pandas as pd 
 import networkx as nx 
 import matplotlib.pyplot as plt 
@@ -238,3 +237,34 @@ def hamming_neighbors_N_removed(N, config_id_focal, configurations, configuratio
         columns = ['config_id_focal', 'config_prob_focal', 'config_id_neighbor', 'config_prob_neighbor', 'hamming'] 
     )
     return df_neighbors
+
+def linkage_matrix(model):
+    """The scipy linkage matrix of a fitted sklearn AgglomerativeClustering model (children, merge
+    distances, and the number of samples under each merge), as in
+    https://scikit-learn.org/stable/auto_examples/cluster/plot_agglomerative_dendrogram.html"""
+    counts = np.zeros(model.children_.shape[0])
+    n_samples = len(model.labels_)
+    for i, merge in enumerate(model.children_):
+        current_count = 0
+        for child_idx in merge:
+            if child_idx < n_samples:
+                current_count += 1  # leaf node
+            else:
+                current_count += counts[child_idx - n_samples]
+        counts[i] = current_count
+    return np.column_stack([model.children_, model.distances_, counts]).astype(float)
+
+def one_label_per_entry(d_annot, entry_ids):
+    """For the figures of a single entry's neighbourhood: keep one row (label) per entry, at its most
+    probable configuration among the nodes that an earlier entry in entry_ids has not already taken.
+    (For the published fit this is the selection that used to be written as row numbers: e.g. Pauline
+    Christianity's most probable configuration is the Jehovah's Witnesses node, so it is labelled at its
+    next most probable one.)"""
+    keep, used_nodes = [], set()
+    for entry_id in entry_ids:
+        candidates = d_annot[(d_annot['entry_id'] == entry_id) & ~d_annot['node_id'].isin(used_nodes)]
+        if len(candidates) > 0:
+            best = candidates['entry_prob'].idxmax()
+            keep.append(best)
+            used_nodes.add(d_annot.loc[best, 'node_id'])
+    return d_annot.loc[keep]

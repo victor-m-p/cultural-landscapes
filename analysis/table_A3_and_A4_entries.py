@@ -51,6 +51,13 @@ config_entry_comm = config_entry_comm.rename(
                'entry_name': 'Entry name (DRH)',
                'entry_prob': 'Weight'})
 
+# tables A3 (included) and A4 (excluded) must between them list every entry exactly once
+included = set(config_entry_comm['DRH ID'])
+excluded = set(entry_reference['entry_id']) - set(config_entry_overlap['entry_id'])
+assert len(config_entry_comm) == len(included), 'an entry appears twice in table A3'
+assert included == set(config_entry_overlap['entry_id']) and len(included) + len(excluded) == entry_reference['entry_id'].nunique(), \
+    f'tables A3 and A4 do not partition the entries: {len(included)} included, {len(excluded)} excluded, {entry_reference["entry_id"].nunique()} in all'
+
 config_entry_latex = config_entry_comm.to_latex(index=False)
 with open('../tables/table_A3_included.txt', 'w') as f: 
     f.write(config_entry_latex)
